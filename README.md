@@ -1,14 +1,14 @@
-# {APP} Starter Kit
+# Staking Starter Kit
 
 ## Purpose
 
-The {APP} Starter Kit is a boilerplate project designed to help businesses launch their own {APP_TYPE}. It includes a Next.js frontend with TypeScript, Tailwind CSS, and React Query, as well as a Liteflow SDK backend to manage quests and leaderboards.
+The Staking Starter Kit is a boilerplate project designed to help businesses launch their own Staking. It includes a Next.js frontend with TypeScript, Tailwind CSS, and React Query, as well as a Liteflow SDK backend to manage quests and leaderboards.
 
 ## Features
 
-- **Feature 1:** Display a list of X for users to interact with.
-- **Feature 2:** Do X
-- **Feature 3:** Do Y
+- **Staking:** Users can stake tokens token anytime to earn rewards.
+- **Claim rewards:** Users can claim rewards anytime.
+- **Unstake:** Users can unstake tokens anytime.
 
 ## Setup
 
@@ -17,8 +17,8 @@ Follow these steps to set up the project:
 ### Clone the repository:
 
 ```bash
-git clone https://github.com/liteflow-labs/{REPO}.git
-cd {REPO}
+git clone https://github.com/liteflow-labs/staking-starter-kit.git
+cd staking-starter-kit
 ```
 
 ### Install dependencies:
@@ -55,6 +55,12 @@ NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=
 
 # Create your Liteflow API key on https://dashboard.liteflow.com/developers
 NEXT_PUBLIC_LITEFLOW_API_KEY=
+
+# Chain ID of the staking contract created on https://dashboard.liteflow.com/engagements/stakings/create
+NEXT_PUBLIC_STAKING_CHAIN=
+
+# Address of the staking contract created on https://dashboard.liteflow.com/engagements/stakings/create
+NEXT_PUBLIC_STAKING_CONTRACT=
 ```
 
 The UI is built with [Tailwind CSS](https://tailwindcss.com/) and [shadcn/ui](https://ui.shadcn.com/), so you can customize the styles by editing the `tailwind.config.js` file and by importing components from the `shadcn/ui` library.
@@ -65,7 +71,7 @@ The application uses [Wagmi](https://wagmi.sh/) and [RainbowKit](https://www.rai
 
 The project is designed to be deployed to Vercel. You can deploy the project by connecting your GitHub repository to Vercel and configuring the environment variables in the Vercel dashboard.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/liteflow-labs/{REPO})
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/liteflow-labs/staking-starter-kit)
 
 ## Contributing
 
