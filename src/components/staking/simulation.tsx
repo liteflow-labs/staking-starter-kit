@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { strToBigInt } from "@/lib/bigint";
-import { GetStakingsByChainIdByAddressResponses } from "@liteflow/sdk/dist/client";
+import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useMemo } from "react";
 
 function timeUnit(seconds: number) {
@@ -28,7 +28,7 @@ export default function StakingSimulation({
   positive,
 }: {
   amount: string;
-  staking: GetStakingsByChainIdByAddressResponses["200"];
+  staking: GetStakingsByChainIdByAddressResponse;
   positive: boolean;
 }) {
   const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
@@ -75,7 +75,7 @@ export default function StakingSimulation({
           <span className="text-primary">
             {staking?.rewardCurrency?.symbol}
           </span>{" "}
-          per {timeUnit(staking.rewardsTimeUnit)}{" "}
+          per {timeUnit(parseInt(staking.rewardsTimeUnit))}{" "}
         </p>
       </CardFooter>
     </Card>

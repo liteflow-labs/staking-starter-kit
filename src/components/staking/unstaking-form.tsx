@@ -7,7 +7,7 @@ import useStakingPosition, {
   stakingPositionKey,
 } from "@/hooks/useStakingPosition";
 import { strToBigInt } from "@/lib/bigint";
-import { GetStakingsByChainIdByAddressResponses } from "@liteflow/sdk/dist/client";
+import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Address, formatUnits } from "viem";
@@ -19,7 +19,7 @@ export default function UnstakingForm({
   amount,
   setAmount,
 }: {
-  staking: GetStakingsByChainIdByAddressResponses["200"];
+  staking: GetStakingsByChainIdByAddressResponse;
   amount: string;
   setAmount: (amount: string) => void;
 }) {

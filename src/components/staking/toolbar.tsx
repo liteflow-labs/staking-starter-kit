@@ -4,14 +4,14 @@ import { NumberFormatter } from "@/components/number-formatter";
 import ClaimForm from "@/components/staking/claim-form";
 import { buttonVariants } from "@/components/ui/button";
 import useStakingPosition from "@/hooks/useStakingPosition";
-import { GetStakingsByChainIdByAddressResponses } from "@liteflow/sdk/dist/client";
+import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
 
 export default function Toolbar({
   staking,
 }: {
-  staking: GetStakingsByChainIdByAddressResponses["200"];
+  staking: GetStakingsByChainIdByAddressResponse;
 }) {
   const account = useAccount();
   const position = useStakingPosition(

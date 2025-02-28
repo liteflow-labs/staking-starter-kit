@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { stakingPositionKey } from "@/hooks/useStakingPosition";
 import { strToBigInt } from "@/lib/bigint";
-import { GetStakingsByChainIdByAddressResponses } from "@liteflow/sdk/dist/client";
+import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -24,7 +24,7 @@ export default function StakingForm({
   amount,
   setAmount,
 }: {
-  staking: GetStakingsByChainIdByAddressResponses["200"];
+  staking: GetStakingsByChainIdByAddressResponse;
   amount: string;
   setAmount: (amount: string) => void;
 }) {

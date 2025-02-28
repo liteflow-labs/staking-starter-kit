@@ -14,11 +14,11 @@ export default function useStakingPosition(
 ) {
   return useQuery({
     queryFn: async () => {
-      const res = await liteflow.stakingPosition.retrieve({
+      const res = await liteflow.stakingPosition.retrieve(
         chainId,
         address,
-        userAddress,
-      });
+        userAddress
+      );
       if (res.error) throw new Error(res.error.message);
       return res.data;
     },

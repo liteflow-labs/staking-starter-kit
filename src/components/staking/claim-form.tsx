@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import useStakingPosition, {
   stakingPositionKey,
 } from "@/hooks/useStakingPosition";
-import { GetStakingsByChainIdByAddressResponses } from "@liteflow/sdk/dist/client";
+import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Address } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
@@ -14,7 +14,7 @@ import { useAccount, useClient, useSwitchChain, useWriteContract } from "wagmi";
 export default function ClaimForm({
   staking,
 }: {
-  staking: GetStakingsByChainIdByAddressResponses["200"];
+  staking: GetStakingsByChainIdByAddressResponse;
 }) {
   const account = useAccount();
   const position = useStakingPosition(
@@ -62,7 +62,7 @@ export default function ClaimForm({
       variant="ghost"
       onClick={() => claim.mutate()}
       isLoading={claim.isPending}
-      disabled={position.data.rewards <= 0}
+      disabled={BigInt(position.data.rewards) <= BigInt(0)}
     >
       {staking.rewardCurrency?.symbol}
       <NumberFormatter
