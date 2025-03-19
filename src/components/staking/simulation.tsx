@@ -12,16 +12,6 @@ import { strToBigInt } from "@/lib/bigint";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useMemo } from "react";
 
-function timeUnit(seconds: number) {
-  if (seconds === 1) return "second";
-  if (seconds === 60) return "minute";
-  if (seconds === 3600) return "hour";
-  if (seconds === 86400) return "day";
-  if (seconds === 604800) return "week";
-  if (seconds === 2592000) return "month";
-  return "year";
-}
-
 export default function StakingSimulation({
   staking,
   amount,
@@ -34,8 +24,11 @@ export default function StakingSimulation({
   const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
 
   const reward = useMemo(() => {
-    if (!staking) return;
-    return amountBigInt * BigInt(staking.dailyRewardPerTokenStaked);
+    if (!staking.depositCurrency) return BigInt(0);
+    return (
+      (amountBigInt * BigInt(staking.dailyRewardPerTokenStaked)) /
+      BigInt(10) ** BigInt(staking.depositCurrency.decimals)
+    );
   }, [staking, amountBigInt]);
 
   return (
@@ -58,24 +51,21 @@ export default function StakingSimulation({
           <span className="text-sm">/day</span>
         </div>
       </CardContent>
-      <CardFooter className="text-center text-sm">
-        <p className="text-center text-sm">
-          <NumberFormatter
-            value={staking.rewardsDenominator}
-            decimals={staking.depositCurrency?.decimals}
-          />{" "}
+      <CardFooter>
+        <p className="w-full text-center text-sm">
+          <NumberFormatter value={1} />{" "}
           <span className="text-primary">
             {staking?.depositCurrency?.symbol}
           </span>{" "}
           staked ={" "}
           <NumberFormatter
-            value={staking.rewardsNumerator}
+            value={staking.dailyRewardPerTokenStaked}
             decimals={staking.rewardCurrency?.decimals}
           />{" "}
           <span className="text-primary">
             {staking?.rewardCurrency?.symbol}
           </span>{" "}
-          per {timeUnit(parseInt(staking.rewardsTimeUnit))}{" "}
+          per day
         </p>
       </CardFooter>
     </Card>
