@@ -23,17 +23,17 @@ export default function Staking({
 
   if (staking.isLoading)
     return (
-      <LoaderPinwheelIcon className="size-20 text-muted-foreground animate-spin" />
+      <LoaderPinwheelIcon className="size-20 animate-spin text-muted-foreground" />
     );
   if (staking.error)
     return <p className="text-destructive">Error: {staking.error.message}</p>;
   if (!staking.data) return <p>No data</p>;
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6">
       <Toolbar staking={staking.data} />
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <Tabs
             defaultValue="stake"
@@ -43,10 +43,10 @@ export default function Staking({
             <CardHeader>
               <TabsList className="grid grid-cols-2">
                 <TabsTrigger value="stake">
-                  <PlusIcon className="size-4 mr-2" /> Stake
+                  <PlusIcon className="mr-2 size-4" /> Stake
                 </TabsTrigger>
                 <TabsTrigger value="unstake">
-                  <MinusIcon className="size-4 mr-2" /> Unstake
+                  <MinusIcon className="mr-2 size-4" /> Unstake
                 </TabsTrigger>
               </TabsList>
             </CardHeader>

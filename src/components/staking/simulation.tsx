@@ -34,12 +34,12 @@ export default function StakingSimulation({
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
           Staking Power Rate
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex items-center justify-center">
-        <div className="text-3xl font-bold text-center space-x-2">
+      <CardContent className="flex flex-1 items-center justify-center">
+        <div className="space-x-2 text-center text-3xl font-bold">
           <span className="text-green-400">
             {positive ? "+" : "-"}
             <NumberFormatter
