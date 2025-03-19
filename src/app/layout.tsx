@@ -29,15 +29,15 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-muted/50`}
+        className={`${geistSans.variable} ${geistMono.variable} bg-muted/50 antialiased`}
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-accent/20 blur-xl -z-10" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/20 to-accent/20 blur-xl" />
         <Providers cookie={(await headers()).get("cookie") || ""}>
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-screen flex-col">
+            <main className="flex flex-grow items-center justify-center px-4 sm:px-6 lg:px-8">
               {children}
             </main>
-            <footer className="text-center text-sm text-muted-foreground py-8 flex justify-center items-center gap-1">
+            <footer className="flex items-center justify-center gap-1 py-8 text-center text-sm text-muted-foreground">
               Powered by{" "}
               <Link href="https://liteflow.com">
                 <Image
