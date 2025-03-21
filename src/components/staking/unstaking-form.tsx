@@ -117,10 +117,7 @@ export default function UnstakingForm({
                   )
                 : undefined
             }
-            step={
-              1 / 10 ** Math.min(13, staking.depositCurrency?.decimals || 18)
-              // 13 decimals is the maximum step
-            }
+            step={0.0001}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="pr-16 invalid:text-red-600"
