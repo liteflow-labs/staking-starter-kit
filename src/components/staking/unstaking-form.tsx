@@ -34,7 +34,7 @@ export default function UnstakingForm({
   const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
 
   const hasError = useMemo(() => {
-    if (amountBigInt === BigInt(0)) return true;
+    if (!amountBigInt) return true;
     if (
       position.data?.tokensStaked !== undefined &&
       amountBigInt > BigInt(position.data.tokensStaked)
@@ -44,9 +44,9 @@ export default function UnstakingForm({
   }, [amountBigInt, position.data]);
 
   const errorMessage = useMemo(() => {
-    // only display not valid amount error if amount was set by user as the default is 0
-    if (amount !== "" && amountBigInt === BigInt(0))
-      return "Enter valid amount";
+    // only display error if amount was set by user
+    if (amount === "") return;
+    if (!amountBigInt) return "Enter valid amount";
     if (
       position.data?.tokensStaked !== undefined &&
       amountBigInt > BigInt(position.data.tokensStaked)
@@ -61,6 +61,7 @@ export default function UnstakingForm({
   const unstake = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error("Client not found");
+      if (!amountBigInt) throw new Error("no valid amount");
       await chain.switchChainAsync({ chainId: staking.chainId });
       const hash = await unstakeTx.writeContractAsync({
         chainId: staking.chainId,
@@ -117,7 +118,7 @@ export default function UnstakingForm({
                   )
                 : undefined
             }
-            step={0.0001}
+            step={0.001}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="pr-16 invalid:text-red-600"
