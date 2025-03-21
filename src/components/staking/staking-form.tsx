@@ -9,7 +9,7 @@ import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { Address, erc20Abi, formatUnits } from "viem";
+import { erc20Abi, formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import {
   useAccount,
@@ -34,22 +34,25 @@ export default function StakingForm({
     query: {
       enabled: !!staking.depositCurrency && !!account.address,
     },
-    contracts: [
-      {
-        abi: erc20Abi,
-        chainId: staking.chainId,
-        address: staking.depositCurrency?.address as Address,
-        functionName: "balanceOf",
-        args: [account.address as Address],
-      },
-      {
-        abi: erc20Abi,
-        chainId: staking.chainId,
-        address: staking.depositCurrency?.address as Address,
-        functionName: "allowance",
-        args: [account.address as Address, staking.contractAddress as Address],
-      },
-    ],
+    contracts:
+      staking.depositCurrency?.address && account.address
+        ? [
+            {
+              abi: erc20Abi,
+              chainId: staking.chainId,
+              address: getAddress(staking.depositCurrency.address),
+              functionName: "balanceOf",
+              args: [account.address],
+            },
+            {
+              abi: erc20Abi,
+              chainId: staking.chainId,
+              address: getAddress(staking.depositCurrency.address),
+              functionName: "allowance",
+              args: [account.address, getAddress(staking.contractAddress)],
+            },
+          ]
+        : undefined,
   });
   const [balance, allowance] = data.data || [];
 
@@ -68,13 +71,15 @@ export default function StakingForm({
   const approve = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error("Client not found");
+      if (!staking.depositCurrency?.address)
+        throw new Error("Deposit currency address is missing");
       await chain.switchChainAsync({ chainId: staking.chainId });
       const hash = await approveTx.writeContractAsync({
         chainId: staking.chainId,
         abi: erc20Abi,
-        address: staking.depositCurrency?.address as Address,
+        address: getAddress(staking.depositCurrency.address),
         functionName: "approve",
-        args: [staking.contractAddress as Address, amountBigInt],
+        args: [getAddress(staking.contractAddress), amountBigInt],
       });
       await waitForTransactionReceipt(client, { hash });
       await data.refetch();
@@ -99,7 +104,7 @@ export default function StakingForm({
             type: "function",
           },
         ] as const,
-        address: staking.contractAddress as Address,
+        address: getAddress(staking.contractAddress),
         functionName: "stake",
         args: [amountBigInt],
       });
@@ -110,7 +115,7 @@ export default function StakingForm({
           queryKey: stakingPositionKey({
             chainId: staking.chainId,
             address: staking.contractAddress,
-            userAddress: account.address as Address,
+            userAddress: account.address,
           }),
         }),
       ]);
