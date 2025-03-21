@@ -10,7 +10,7 @@ import { strToBigInt } from "@/lib/bigint";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Address, formatUnits } from "viem";
+import { formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient, useSwitchChain, useWriteContract } from "wagmi";
 
@@ -27,7 +27,7 @@ export default function UnstakingForm({
   const position = useStakingPosition(
     staking.chainId,
     staking.contractAddress,
-    account.address as Address
+    account.address
   );
   const modal = useConnectModal();
   const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
@@ -54,7 +54,7 @@ export default function UnstakingForm({
             type: "function",
           },
         ] as const,
-        address: staking.contractAddress as Address,
+        address: getAddress(staking.contractAddress),
         functionName: "withdraw",
         args: [amountBigInt],
       });
@@ -63,7 +63,7 @@ export default function UnstakingForm({
         queryKey: stakingPositionKey({
           chainId: staking.chainId,
           address: staking.contractAddress,
-          userAddress: account.address as Address,
+          userAddress: account.address,
         }),
       });
     },
@@ -98,10 +98,9 @@ export default function UnstakingForm({
             disabled={!position.data?.tokensStaked}
             onClick={() =>
               position.data?.tokensStaked &&
-              staking &&
               setAmount(
                 formatUnits(
-                  BigInt(position.data?.tokensStaked),
+                  BigInt(position.data.tokensStaked),
                   staking.depositCurrency?.decimals || 18
                 )
               )

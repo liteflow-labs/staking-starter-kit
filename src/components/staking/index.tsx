@@ -52,22 +52,18 @@ export default function Staking({
             </CardHeader>
             <CardContent>
               <TabsContent value="stake" className="space-y-6">
-                {staking.data && (
-                  <StakingForm
-                    staking={staking.data}
-                    amount={amount}
-                    setAmount={setAmount}
-                  />
-                )}
+                <StakingForm
+                  staking={staking.data}
+                  amount={amount}
+                  setAmount={setAmount}
+                />
               </TabsContent>
               <TabsContent value="unstake" className="space-y-6">
-                {staking.data && (
-                  <UnstakingForm
-                    staking={staking.data}
-                    amount={amount}
-                    setAmount={setAmount}
-                  />
-                )}
+                <UnstakingForm
+                  staking={staking.data}
+                  amount={amount}
+                  setAmount={setAmount}
+                />
               </TabsContent>
             </CardContent>
           </Tabs>
