@@ -63,10 +63,24 @@ export default function StakingForm({
     return allowance.result < amountBigInt;
   }, [allowance, amountBigInt]);
 
+  const hasError = useMemo(() => {
+    if (amountBigInt === BigInt(0)) return true;
+    if (balance?.result !== undefined && amountBigInt > balance.result)
+      return true;
+    return false;
+  }, [amountBigInt, balance]);
+
+  const errorMessage = useMemo(() => {
+    // only display not valid amount error if amount was set by user as the default is 0
+    if (amount !== "" && amountBigInt === BigInt(0))
+      return "Enter valid amount";
+    if (balance?.result !== undefined && amountBigInt > balance.result)
+      return "Not enough balance";
+  }, [amount, amountBigInt, balance]);
+
   const queryClient = useQueryClient();
   const client = useClient({ chainId: staking.chainId });
   const chain = useSwitchChain();
-
   const approveTx = useWriteContract();
   const approve = useMutation({
     mutationFn: async () => {
@@ -109,6 +123,7 @@ export default function StakingForm({
         args: [amountBigInt],
       });
       await waitForTransactionReceipt(client, { hash });
+      setAmount("");
       await Promise.all([
         data.refetch(),
         queryClient.invalidateQueries({
@@ -138,10 +153,23 @@ export default function StakingForm({
 
         <div className="relative">
           <Input
-            type="text"
+            type="number"
+            min="0"
+            max={
+              balance?.result
+                ? formatUnits(
+                    balance.result,
+                    staking.depositCurrency?.decimals || 18
+                  )
+                : undefined
+            }
+            step={
+              1 / 10 ** Math.min(13, staking.depositCurrency?.decimals || 18)
+              // 13 decimals is the maximum step
+            }
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="pr-16"
+            className="pr-16 invalid:text-red-600"
             placeholder="100"
           />
           <Button
@@ -162,6 +190,10 @@ export default function StakingForm({
             Max
           </Button>
         </div>
+
+        {errorMessage && (
+          <div className="text-sm text-red-600">Error: {errorMessage}</div>
+        )}
       </div>
 
       {account.isDisconnected ? (
@@ -175,6 +207,7 @@ export default function StakingForm({
         </Button>
       ) : requireAllowance ? (
         <Button
+          disabled={hasError}
           isLoading={approve.isPending}
           className="w-full"
           onClick={() => approve.mutate()}
@@ -184,6 +217,7 @@ export default function StakingForm({
         </Button>
       ) : (
         <Button
+          disabled={hasError}
           isLoading={stake.isPending}
           className="w-full"
           onClick={() => stake.mutate()}

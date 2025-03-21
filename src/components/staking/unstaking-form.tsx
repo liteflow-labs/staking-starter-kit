@@ -10,6 +10,7 @@ import { strToBigInt } from "@/lib/bigint";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient, useSwitchChain, useWriteContract } from "wagmi";
@@ -32,10 +33,30 @@ export default function UnstakingForm({
   const modal = useConnectModal();
   const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
 
+  const hasError = useMemo(() => {
+    if (amountBigInt === BigInt(0)) return true;
+    if (
+      position.data?.tokensStaked !== undefined &&
+      amountBigInt > BigInt(position.data.tokensStaked)
+    )
+      return true;
+    return false;
+  }, [amountBigInt, position.data]);
+
+  const errorMessage = useMemo(() => {
+    // only display not valid amount error if amount was set by user as the default is 0
+    if (amount !== "" && amountBigInt === BigInt(0))
+      return "Enter valid amount";
+    if (
+      position.data?.tokensStaked !== undefined &&
+      amountBigInt > BigInt(position.data.tokensStaked)
+    )
+      return "Not enough available token";
+  }, [amount, amountBigInt, position.data]);
+
   const queryClient = useQueryClient();
   const client = useClient({ chainId: staking.chainId });
   const chain = useSwitchChain();
-
   const unstakeTx = useWriteContract();
   const unstake = useMutation({
     mutationFn: async () => {
@@ -59,6 +80,7 @@ export default function UnstakingForm({
         args: [amountBigInt],
       });
       await waitForTransactionReceipt(client, { hash });
+      setAmount("");
       await queryClient.invalidateQueries({
         queryKey: stakingPositionKey({
           chainId: staking.chainId,
@@ -85,10 +107,23 @@ export default function UnstakingForm({
 
         <div className="relative">
           <Input
-            type="text"
+            type="number"
+            min="0"
+            max={
+              position.data?.tokensStaked
+                ? formatUnits(
+                    BigInt(position.data.tokensStaked),
+                    staking.depositCurrency?.decimals || 18
+                  )
+                : undefined
+            }
+            step={
+              1 / 10 ** Math.min(13, staking.depositCurrency?.decimals || 18)
+              // 13 decimals is the maximum step
+            }
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="pr-16"
+            className="pr-16 invalid:text-red-600"
             placeholder="100"
           />
           <Button
@@ -109,6 +144,10 @@ export default function UnstakingForm({
             Max
           </Button>
         </div>
+
+        {errorMessage && (
+          <div className="text-sm text-red-600">Error: {errorMessage}</div>
+        )}
       </div>
 
       {account.isDisconnected ? (
@@ -122,6 +161,7 @@ export default function UnstakingForm({
         </Button>
       ) : (
         <Button
+          disabled={hasError}
           isLoading={unstake.isPending}
           className="w-full"
           onClick={() => unstake.mutate()}
