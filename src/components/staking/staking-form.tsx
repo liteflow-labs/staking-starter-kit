@@ -59,7 +59,7 @@ export default function StakingForm({
   const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
 
   const requireAllowance = useMemo(() => {
-    if (!allowance?.result) return true;
+    if (allowance?.result === undefined) return true;
     return allowance.result < amountBigInt;
   }, [allowance, amountBigInt]);
 
