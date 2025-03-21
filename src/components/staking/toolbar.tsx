@@ -35,7 +35,7 @@ export default function Toolbar({
           </span>{" "}
           {position.data ? (
             <NumberFormatter
-              value={position.data?.tokensStaked}
+              value={position.data.tokensStaked}
               decimals={staking.depositCurrency?.decimals}
             />
           ) : (

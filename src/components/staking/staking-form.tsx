@@ -146,10 +146,9 @@ export default function StakingForm({
             disabled={!balance?.result}
             onClick={() =>
               balance?.result &&
-              staking &&
               setAmount(
                 formatUnits(
-                  balance?.result,
+                  balance.result,
                   staking.depositCurrency?.decimals || 18
                 )
               )

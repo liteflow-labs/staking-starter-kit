@@ -55,16 +55,14 @@ export default function StakingSimulation({
         <p className="w-full text-center text-sm">
           <NumberFormatter value={1} />{" "}
           <span className="text-primary">
-            {staking?.depositCurrency?.symbol}
+            {staking.depositCurrency?.symbol}
           </span>{" "}
           staked ={" "}
           <NumberFormatter
             value={staking.dailyRewardPerTokenStaked}
             decimals={staking.rewardCurrency?.decimals}
           />{" "}
-          <span className="text-primary">
-            {staking?.rewardCurrency?.symbol}
-          </span>{" "}
+          <span className="text-primary">{staking.rewardCurrency?.symbol}</span>{" "}
           per day
         </p>
       </CardFooter>

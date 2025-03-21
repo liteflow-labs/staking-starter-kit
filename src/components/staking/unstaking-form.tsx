@@ -98,10 +98,9 @@ export default function UnstakingForm({
             disabled={!position.data?.tokensStaked}
             onClick={() =>
               position.data?.tokensStaked &&
-              staking &&
               setAmount(
                 formatUnits(
-                  BigInt(position.data?.tokensStaked),
+                  BigInt(position.data.tokensStaked),
                   staking.depositCurrency?.decimals || 18
                 )
               )
