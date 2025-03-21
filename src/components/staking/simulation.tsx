@@ -24,7 +24,7 @@ export default function StakingSimulation({
   const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
 
   const reward = useMemo(() => {
-    if (!staking.depositCurrency) return BigInt(0);
+    if (!staking.depositCurrency || !amountBigInt) return BigInt(0);
     return (
       (amountBigInt * BigInt(staking.dailyRewardPerTokenStaked)) /
       BigInt(10) ** BigInt(staking.depositCurrency.decimals)
