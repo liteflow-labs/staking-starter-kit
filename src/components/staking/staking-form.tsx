@@ -4,7 +4,9 @@ import { NumberFormatter } from "@/components/number-formatter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useApprove from "@/hooks/useApprove";
+import useStake from "@/hooks/useStake";
 import { stakingPositionKey } from "@/hooks/useStakingPosition";
+import useSupportMultiAssetStaking from "@/hooks/useSupportMultiAssetStaking";
 import { strToBigInt } from "@/lib/bigint";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
@@ -12,13 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Address, erc20Abi, formatUnits } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
-import {
-  useAccount,
-  useClient,
-  useReadContracts,
-  useSwitchChain,
-  useWriteContract,
-} from "wagmi";
+import { useAccount, useClient, useReadContracts } from "wagmi";
 
 export default function StakingForm({
   staking,
@@ -31,6 +27,7 @@ export default function StakingForm({
 }) {
   const account = useAccount();
   const modal = useConnectModal();
+  const isMultiAssetStaking = useSupportMultiAssetStaking(staking);
   const data = useReadContracts({
     query: {
       enabled: !!staking.depositCurrency && !!account.address,
@@ -64,6 +61,7 @@ export default function StakingForm({
   const queryClient = useQueryClient();
   const client = useClient({ chainId: staking.chainId });
   const approve = useApprove();
+  const stake = useStake(isMultiAssetStaking.data);
 
   const approveAndRefetch = useMutation({
     mutationFn: async () => {
@@ -79,27 +77,13 @@ export default function StakingForm({
     },
   });
 
-  const stakeTx = useWriteContract();
-  const stake = useMutation({
+  const stakeAndRefetch = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error("Client not found");
-      await chain.switchChainAsync({ chainId: staking.chainId });
-      const hash = await stakeTx.writeContractAsync({
+      const hash = await stake.mutateAsync({
         chainId: staking.chainId,
-        abi: [
-          {
-            inputs: [
-              { internalType: "uint256", name: "_amount", type: "uint256" },
-            ],
-            name: "stake",
-            outputs: [],
-            stateMutability: "payable",
-            type: "function",
-          },
-        ] as const,
-        address: staking.contractAddress as Address,
-        functionName: "stake",
-        args: [amountBigInt],
+        contract: staking.contractAddress as Address,
+        amount: amountBigInt,
       });
       await waitForTransactionReceipt(client, { hash });
       await Promise.all([
@@ -178,9 +162,9 @@ export default function StakingForm({
         </Button>
       ) : (
         <Button
-          isLoading={stake.isPending}
+          isLoading={stakeAndRefetch.isPending}
           className="w-full"
-          onClick={() => stake.mutate()}
+          onClick={() => stakeAndRefetch.mutate()}
           size="lg"
         >
           Stake {staking.depositCurrency?.symbol}
