@@ -3,7 +3,7 @@
 import StakingSimulation from "@/components/staking/simulation";
 import StakingForm from "@/components/staking/staking-form";
 import Toolbar from "@/components/staking/toolbar";
-import UnstakingForm from "@/components/staking/unstaking-form";
+import WithdrawForm from "@/components/staking/withdraw-form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useStaking from "@/hooks/useStaking";
@@ -45,8 +45,8 @@ export default function Staking({
                 <TabsTrigger value="stake">
                   <PlusIcon className="mr-2 size-4" /> Stake
                 </TabsTrigger>
-                <TabsTrigger value="unstake">
-                  <MinusIcon className="mr-2 size-4" /> Unstake
+                <TabsTrigger value="withdraw">
+                  <MinusIcon className="mr-2 size-4" /> Withdraw
                 </TabsTrigger>
               </TabsList>
             </CardHeader>
@@ -60,9 +60,9 @@ export default function Staking({
                   />
                 )}
               </TabsContent>
-              <TabsContent value="unstake" className="space-y-6">
+              <TabsContent value="withdraw" className="space-y-6">
                 {staking.data && (
-                  <UnstakingForm
+                  <WithdrawForm
                     staking={staking.data}
                     amount={amount}
                     setAmount={setAmount}

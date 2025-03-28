@@ -6,15 +6,17 @@ import { Input } from "@/components/ui/input";
 import useStakingPosition, {
   stakingPositionKey,
 } from "@/hooks/useStakingPosition";
+import useSupportMultiAssetStaking from "@/hooks/useSupportMultiAssetStaking";
+import useWithdraw from "@/hooks/useWithdraw";
 import { strToBigInt } from "@/lib/bigint";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Address, formatUnits } from "viem";
+import { Address, formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
-import { useAccount, useClient, useSwitchChain, useWriteContract } from "wagmi";
+import { useAccount, useClient, useSwitchChain } from "wagmi";
 
-export default function UnstakingForm({
+export default function WithdrawForm({
   staking,
   amount,
   setAmount,
@@ -36,27 +38,16 @@ export default function UnstakingForm({
   const client = useClient({ chainId: staking.chainId });
   const chain = useSwitchChain();
 
-  const unstakeTx = useWriteContract();
-  const unstake = useMutation({
+  const multiAssetStaking = useSupportMultiAssetStaking(staking);
+  const withdraw = useWithdraw(multiAssetStaking.data);
+  const withdrawAndRefetch = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error("Client not found");
       await chain.switchChainAsync({ chainId: staking.chainId });
-      const hash = await unstakeTx.writeContractAsync({
+      const hash = await withdraw.mutateAsync({
         chainId: staking.chainId,
-        abi: [
-          {
-            inputs: [
-              { internalType: "uint256", name: "_amount", type: "uint256" },
-            ],
-            name: "withdraw",
-            outputs: [],
-            stateMutability: "nonpayable",
-            type: "function",
-          },
-        ] as const,
-        address: staking.contractAddress as Address,
-        functionName: "withdraw",
-        args: [amountBigInt],
+        contract: getAddress(staking.contractAddress),
+        amount: amountBigInt,
       });
       await waitForTransactionReceipt(client, { hash });
       await queryClient.invalidateQueries({
@@ -123,12 +114,12 @@ export default function UnstakingForm({
         </Button>
       ) : (
         <Button
-          isLoading={unstake.isPending}
+          isLoading={withdrawAndRefetch.isPending}
           className="w-full"
-          onClick={() => unstake.mutate()}
+          onClick={() => withdrawAndRefetch.mutate()}
           size="lg"
         >
-          Unstake {staking.depositCurrency?.symbol}
+          Withdraw {staking.depositCurrency?.symbol}
         </Button>
       )}
     </div>
