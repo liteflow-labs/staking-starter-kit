@@ -3,6 +3,7 @@
 import { NumberFormatter } from "@/components/number-formatter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import useApprove from "@/hooks/useApprove";
 import { stakingPositionKey } from "@/hooks/useStakingPosition";
 import { strToBigInt } from "@/lib/bigint";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
@@ -62,19 +63,16 @@ export default function StakingForm({
 
   const queryClient = useQueryClient();
   const client = useClient({ chainId: staking.chainId });
-  const chain = useSwitchChain();
+  const approve = useApprove();
 
-  const approveTx = useWriteContract();
-  const approve = useMutation({
+  const approveAndRefetch = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error("Client not found");
-      await chain.switchChainAsync({ chainId: staking.chainId });
-      const hash = await approveTx.writeContractAsync({
+      const hash = await approve.mutateAsync({
         chainId: staking.chainId,
-        abi: erc20Abi,
-        address: staking.depositCurrency?.address as Address,
-        functionName: "approve",
-        args: [staking.contractAddress as Address, amountBigInt],
+        token: staking.depositCurrency?.address as Address,
+        contract: staking.contractAddress as Address,
+        amount: amountBigInt,
       });
       await waitForTransactionReceipt(client, { hash });
       await data.refetch();
@@ -171,9 +169,9 @@ export default function StakingForm({
         </Button>
       ) : requireAllowance ? (
         <Button
-          isLoading={approve.isPending}
+          isLoading={approveAndRefetch.isPending}
           className="w-full"
-          onClick={() => approve.mutate()}
+          onClick={() => approveAndRefetch.mutate()}
           size="lg"
         >
           Approve {staking.depositCurrency?.symbol}
