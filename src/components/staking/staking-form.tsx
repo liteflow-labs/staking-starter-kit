@@ -16,7 +16,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusCircleIcon } from "lucide-react";
 import { useMemo } from "react";
-import { Address, erc20Abi, erc721Abi, formatUnits, getAddress } from "viem";
+import { erc20Abi, erc721Abi, formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient, useReadContract } from "wagmi";
 
@@ -42,7 +42,7 @@ export default function StakingForm({
     },
     abi: erc20Abi,
     chainId: staking.chainId,
-    address: staking.depositToken?.address as Address,
+    address: getAddress(staking.depositToken?.address || ""),
     functionName: "balanceOf",
     args: [getAddress(account.address || "")],
   });
@@ -53,7 +53,7 @@ export default function StakingForm({
     },
     abi: erc20Abi,
     chainId: staking.chainId,
-    address: staking.depositToken?.address as Address,
+    address: getAddress(staking.depositToken?.address || ""),
     functionName: "allowance",
     args: [
       getAddress(account.address || ""),
@@ -67,9 +67,12 @@ export default function StakingForm({
     },
     abi: erc721Abi,
     chainId: staking.chainId,
-    address: staking.depositCollection?.address as Address,
+    address: getAddress(staking.depositCollection?.address || ""),
     functionName: "isApprovedForAll",
-    args: [account.address as Address, staking.contractAddress as Address],
+    args: [
+      getAddress(account.address || ""),
+      getAddress(staking.contractAddress),
+    ],
   });
 
   const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals);
