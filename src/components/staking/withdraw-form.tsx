@@ -3,6 +3,7 @@
 import { NumberFormatter } from "@/components/number-formatter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import useStakingPosition, {
   stakingPositionKey,
 } from "@/hooks/useStakingPosition";
@@ -32,7 +33,7 @@ export default function WithdrawForm({
     account.address as Address
   );
   const modal = useConnectModal();
-  const amountBigInt = strToBigInt(amount, staking.depositCurrency?.decimals);
+  const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals);
 
   const queryClient = useQueryClient();
   const client = useClient({ chainId: staking.chainId });
@@ -48,6 +49,8 @@ export default function WithdrawForm({
         chainId: staking.chainId,
         contract: getAddress(staking.contractAddress),
         amount: amountBigInt,
+        nftIds:
+          position.data?.nftStaked?.map((nftId) => strToBigInt(nftId)) ?? [],
       });
       await waitForTransactionReceipt(client, { hash });
       await queryClient.invalidateQueries({
@@ -63,19 +66,20 @@ export default function WithdrawForm({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
+        <Label className="flex justify-between" htmlFor="withdraw">
           <span>Enter amount</span>
           <span>
             Available:{" "}
             <NumberFormatter
               value={position.data?.tokensStaked}
-              decimals={staking.depositCurrency?.decimals}
+              decimals={staking.depositToken?.decimals}
             />
           </span>
-        </div>
+        </Label>
 
         <div className="relative">
           <Input
+            id="withdraw"
             type="text"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
@@ -93,7 +97,7 @@ export default function WithdrawForm({
               setAmount(
                 formatUnits(
                   BigInt(position.data?.tokensStaked),
-                  staking.depositCurrency?.decimals || 18
+                  staking.depositToken?.decimals || 18
                 )
               )
             }
@@ -113,14 +117,22 @@ export default function WithdrawForm({
           Connect Wallet
         </Button>
       ) : (
-        <Button
-          isLoading={withdrawAndRefetch.isPending}
-          className="w-full"
-          onClick={() => withdrawAndRefetch.mutate()}
-          size="lg"
-        >
-          Withdraw {staking.depositCurrency?.symbol}
-        </Button>
+        <div className="space-y-2">
+          <Button
+            isLoading={withdrawAndRefetch.isPending}
+            className="w-full"
+            onClick={() => withdrawAndRefetch.mutate()}
+            size="lg"
+          >
+            Withdraw {staking.depositToken?.symbol}
+          </Button>
+          {position.data?.nftStaked && position.data.nftStaked.length > 0 && (
+            <p className="text-left text-sm text-muted-foreground">
+              {position.data.nftStaked.length} staked NFTs will be sent back to
+              your wallet.
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

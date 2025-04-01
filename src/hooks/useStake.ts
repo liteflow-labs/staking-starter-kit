@@ -35,10 +35,12 @@ export default function useStake(multiAssetStaking: boolean) {
       chainId,
       contract,
       amount,
+      nftIds,
     }: {
       chainId: number;
       contract: Address;
       amount: bigint;
+      nftIds: bigint[];
     }) => {
       await chain.switchChainAsync({ chainId });
       if (multiAssetStaking)
@@ -47,7 +49,7 @@ export default function useStake(multiAssetStaking: boolean) {
           abi: ABI_MULTI_ASSET,
           address: contract,
           functionName: "stake",
-          args: [amount, []],
+          args: [amount, nftIds],
         });
       return await stakeTx.writeContractAsync({
         chainId,

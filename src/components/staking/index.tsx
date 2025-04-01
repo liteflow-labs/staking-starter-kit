@@ -20,6 +20,7 @@ export default function Staking({
   const staking = useStaking(chainId, address);
   const [tab, setTab] = useState<string>("stake");
   const [amount, setAmount] = useState("");
+  const [nftIds, setNftIds] = useState<string[]>([]);
 
   if (staking.isLoading)
     return (
@@ -57,6 +58,8 @@ export default function Staking({
                     staking={staking.data}
                     amount={amount}
                     setAmount={setAmount}
+                    nftIds={nftIds}
+                    setNftIds={setNftIds}
                   />
                 )}
               </TabsContent>
@@ -75,7 +78,8 @@ export default function Staking({
 
         <StakingSimulation
           staking={staking.data}
-          amount={amount}
+          tokenAmount={amount}
+          nftQuantity={nftIds.length}
           positive={tab === "stake"}
         />
       </div>

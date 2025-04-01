@@ -33,10 +33,12 @@ export default function useWithdraw(multiAssetStaking: boolean) {
       chainId,
       contract,
       amount,
+      nftIds,
     }: {
       chainId: number;
       contract: Address;
       amount: bigint;
+      nftIds: bigint[];
     }) => {
       await chain.switchChainAsync({ chainId });
       if (multiAssetStaking)
@@ -45,7 +47,7 @@ export default function useWithdraw(multiAssetStaking: boolean) {
           abi: ABI_MULTI_ASSET,
           address: contract,
           functionName: "withdraw",
-          args: [amount, []],
+          args: [amount, nftIds],
         });
       return await withdrawTx.writeContractAsync({
         chainId,
