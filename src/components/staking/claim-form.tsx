@@ -8,7 +8,6 @@ import useStakingPosition, {
 } from "@/hooks/useStakingPosition";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Address } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient, useSwitchChain } from "wagmi";
 
@@ -21,7 +20,7 @@ export default function ClaimForm({
   const position = useStakingPosition(
     staking.chainId,
     staking.contractAddress,
-    account.address as Address
+    account.address
   );
 
   const queryClient = useQueryClient();
@@ -38,7 +37,7 @@ export default function ClaimForm({
         queryKey: stakingPositionKey({
           chainId: staking.chainId,
           address: staking.contractAddress,
-          userAddress: account.address as Address,
+          userAddress: account.address,
         }),
       });
     },

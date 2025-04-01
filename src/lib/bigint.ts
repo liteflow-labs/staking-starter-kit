@@ -1,6 +1,13 @@
-import { parseUnits } from "viem";
+import { InvalidDecimalNumberError, parseUnits } from "viem";
 
-export function strToBigInt(value: string, decimals: number = 18): bigint {
-  if (!value) return BigInt(0);
-  return parseUnits(Number(value).toFixed(decimals), decimals);
+export function strToBigInt(
+  value: string,
+  decimals: number = 18
+): bigint | undefined {
+  try {
+    return parseUnits(value, decimals);
+  } catch (error) {
+    if (error instanceof InvalidDecimalNumberError) return undefined;
+    throw error;
+  }
 }

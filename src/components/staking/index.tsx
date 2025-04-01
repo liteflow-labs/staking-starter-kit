@@ -53,24 +53,20 @@ export default function Staking({
             </CardHeader>
             <CardContent>
               <TabsContent value="stake" className="space-y-6">
-                {staking.data && (
-                  <StakingForm
-                    staking={staking.data}
-                    amount={amount}
-                    setAmount={setAmount}
-                    nftIds={nftIds}
-                    setNftIds={setNftIds}
-                  />
-                )}
+                <StakingForm
+                  staking={staking.data}
+                  amount={amount}
+                  setAmount={setAmount}
+                  nftIds={nftIds}
+                  setNftIds={setNftIds}
+                />
               </TabsContent>
               <TabsContent value="withdraw" className="space-y-6">
-                {staking.data && (
-                  <WithdrawForm
-                    staking={staking.data}
-                    amount={amount}
-                    setAmount={setAmount}
-                  />
-                )}
+                <WithdrawForm
+                  staking={staking.data}
+                  amount={amount}
+                  setAmount={setAmount}
+                />
               </TabsContent>
             </CardContent>
           </Tabs>

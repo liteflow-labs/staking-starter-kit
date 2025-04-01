@@ -44,7 +44,7 @@ export default function StakingForm({
     chainId: staking.chainId,
     address: staking.depositToken?.address as Address,
     functionName: "balanceOf",
-    args: [account.address as Address],
+    args: [getAddress(account.address || "")],
   });
 
   const allowance = useReadContract({
@@ -55,7 +55,10 @@ export default function StakingForm({
     chainId: staking.chainId,
     address: staking.depositToken?.address as Address,
     functionName: "allowance",
-    args: [account.address as Address, staking.contractAddress as Address],
+    args: [
+      getAddress(account.address || ""),
+      getAddress(staking.contractAddress),
+    ],
   });
 
   const isApprovedForAll = useReadContract({
@@ -70,6 +73,20 @@ export default function StakingForm({
   });
 
   const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals);
+
+  const hasError = useMemo(() => {
+    if (!amountBigInt) return true;
+    if (balance?.data !== undefined && amountBigInt > balance.data) return true;
+    return false;
+  }, [amountBigInt, balance]);
+
+  const balanceError = useMemo(() => {
+    // only display error if amount was set by user
+    if (amount === "") return;
+    if (!amountBigInt) return "Enter valid amount";
+    if (balance?.data !== undefined && amountBigInt > balance.data)
+      return "Not enough balance";
+  }, [amount, amountBigInt, balance]);
 
   const requireTokenApproval = useMemo(() => {
     if (allowance?.data === undefined) return true;
@@ -90,7 +107,8 @@ export default function StakingForm({
 
   const approveTokenAndRefetch = useMutation({
     mutationFn: async () => {
-      if (!staking.depositToken?.address) return;
+      if (!staking.depositToken?.address)
+        throw new Error("Deposit token address is missing");
       if (!client) throw new Error("Client not found");
       const hash = await approveToken.mutateAsync({
         chainId: staking.chainId,
@@ -122,11 +140,12 @@ export default function StakingForm({
       if (!client) throw new Error("Client not found");
       const hash = await stake.mutateAsync({
         chainId: staking.chainId,
-        contract: staking.contractAddress as Address,
+        contract: getAddress(staking.contractAddress),
         amount: amountBigInt,
         nftIds: nftIds.map((id) => BigInt(id)),
       });
       await waitForTransactionReceipt(client, { hash });
+      setAmount("");
       await Promise.all([
         balance.refetch(),
         allowance.refetch(),
@@ -135,7 +154,7 @@ export default function StakingForm({
           queryKey: stakingPositionKey({
             chainId: staking.chainId,
             address: staking.contractAddress,
-            userAddress: account.address as Address,
+            userAddress: account.address,
           }),
         }),
       ]);
@@ -159,10 +178,20 @@ export default function StakingForm({
         <div className="relative">
           <Input
             id="stake"
-            type="text"
+            type="number"
+            min="0"
+            max={
+              balance?.data
+                ? formatUnits(
+                    balance.data,
+                    staking.depositToken?.decimals || 18
+                  )
+                : undefined
+            }
+            step={0.001}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="pr-16"
+            className="pr-16 invalid:text-red-600"
             placeholder="100"
           />
           <Button
@@ -181,6 +210,10 @@ export default function StakingForm({
             Max
           </Button>
         </div>
+
+        {balanceError && (
+          <div className="text-sm text-red-600">{balanceError}</div>
+        )}
       </div>
 
       {staking.depositCollection && (
@@ -217,6 +250,7 @@ export default function StakingForm({
       ) : requireTokenApproval ? (
         <Button
           isLoading={approveTokenAndRefetch.isPending}
+          disabled={hasError}
           className="w-full"
           onClick={() => approveTokenAndRefetch.mutate()}
           size="lg"
@@ -235,6 +269,7 @@ export default function StakingForm({
       ) : (
         <Button
           isLoading={stakeAndRefetch.isPending}
+          disabled={hasError}
           className="w-full"
           onClick={() => stakeAndRefetch.mutate()}
           size="lg"

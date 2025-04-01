@@ -11,7 +11,7 @@ const queryClient = new QueryClient();
 export function Providers({
   cookie,
   children,
-}: PropsWithChildren<{ cookie: string }>) {
+}: PropsWithChildren<{ cookie: string | null }>) {
   const wagmiConfig = useMemo(() => initWagmiConfig(), []);
 
   const initialState = useMemo(
@@ -20,7 +20,7 @@ export function Providers({
   );
 
   return (
-    <WagmiProvider config={initWagmiConfig()} initialState={initialState}>
+    <WagmiProvider config={wagmiConfig} initialState={initialState}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           <>{children}</>

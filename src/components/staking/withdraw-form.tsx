@@ -13,7 +13,8 @@ import { strToBigInt } from "@/lib/bigint";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Address, formatUnits, getAddress } from "viem";
+import { useMemo } from "react";
+import { formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient, useSwitchChain } from "wagmi";
 
@@ -30,10 +31,31 @@ export default function WithdrawForm({
   const position = useStakingPosition(
     staking.chainId,
     staking.contractAddress,
-    account.address as Address
+    account.address
   );
   const modal = useConnectModal();
   const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals);
+
+  const hasError = useMemo(() => {
+    if (!amountBigInt) return true;
+    if (
+      position.data?.tokensStaked !== undefined &&
+      amountBigInt > BigInt(position.data.tokensStaked)
+    )
+      return true;
+    return false;
+  }, [amountBigInt, position.data]);
+
+  const errorMessage = useMemo(() => {
+    // only display error if amount was set by user
+    if (amount === "") return;
+    if (!amountBigInt) return "Enter valid amount";
+    if (
+      position.data?.tokensStaked !== undefined &&
+      amountBigInt > BigInt(position.data.tokensStaked)
+    )
+      return "Not enough available token";
+  }, [amount, amountBigInt, position.data]);
 
   const queryClient = useQueryClient();
   const client = useClient({ chainId: staking.chainId });
@@ -44,6 +66,7 @@ export default function WithdrawForm({
   const withdrawAndRefetch = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error("Client not found");
+      if (!amountBigInt) throw new Error("no valid amount");
       await chain.switchChainAsync({ chainId: staking.chainId });
       const hash = await withdraw.mutateAsync({
         chainId: staking.chainId,
@@ -53,11 +76,12 @@ export default function WithdrawForm({
           position.data?.nftStaked?.map((nftId) => strToBigInt(nftId)) ?? [],
       });
       await waitForTransactionReceipt(client, { hash });
+      setAmount("");
       await queryClient.invalidateQueries({
         queryKey: stakingPositionKey({
           chainId: staking.chainId,
           address: staking.contractAddress,
-          userAddress: account.address as Address,
+          userAddress: account.address,
         }),
       });
     },
@@ -80,10 +104,20 @@ export default function WithdrawForm({
         <div className="relative">
           <Input
             id="withdraw"
-            type="text"
+            type="number"
+            min="0"
+            max={
+              position.data?.tokensStaked
+                ? formatUnits(
+                    BigInt(position.data.tokensStaked),
+                    staking.depositCurrency?.decimals || 18
+                  )
+                : undefined
+            }
+            step={0.001}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="pr-16"
+            className="pr-16 invalid:text-red-600"
             placeholder="100"
           />
           <Button
@@ -93,10 +127,9 @@ export default function WithdrawForm({
             disabled={!position.data?.tokensStaked}
             onClick={() =>
               position.data?.tokensStaked &&
-              staking &&
               setAmount(
                 formatUnits(
-                  BigInt(position.data?.tokensStaked),
+                  BigInt(position.data.tokensStaked),
                   staking.depositToken?.decimals || 18
                 )
               )
@@ -105,6 +138,10 @@ export default function WithdrawForm({
             Max
           </Button>
         </div>
+
+        {errorMessage && (
+          <div className="text-sm text-red-600">Error: {errorMessage}</div>
+        )}
       </div>
 
       {account.isDisconnected ? (
@@ -119,6 +156,7 @@ export default function WithdrawForm({
       ) : (
         <div className="space-y-2">
           <Button
+            disabled={hasError}
             isLoading={withdrawAndRefetch.isPending}
             className="w-full"
             onClick={() => withdrawAndRefetch.mutate()}

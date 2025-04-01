@@ -5,7 +5,6 @@ import ClaimForm from "@/components/staking/claim-form";
 import { buttonVariants } from "@/components/ui/button";
 import useStakingPosition from "@/hooks/useStakingPosition";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
-import { Address } from "viem";
 import { useAccount } from "wagmi";
 
 export default function Toolbar({
@@ -17,7 +16,7 @@ export default function Toolbar({
   const position = useStakingPosition(
     staking.chainId,
     staking.contractAddress,
-    account.address as Address
+    account.address
   );
 
   return (
@@ -33,7 +32,7 @@ export default function Toolbar({
           <span className="text-primary">{staking.depositToken?.symbol}</span>{" "}
           {position.data ? (
             <NumberFormatter
-              value={position.data?.tokensStaked}
+              value={position.data.tokensStaked}
               decimals={staking.depositToken?.decimals}
             />
           ) : (
