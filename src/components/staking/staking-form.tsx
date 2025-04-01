@@ -90,6 +90,7 @@ export default function StakingForm({
 
   const requireTokenApproval = useMemo(() => {
     if (allowance.data === undefined) return true;
+    if (!amountBigInt) return false;
     return allowance.data < amountBigInt;
   }, [allowance, amountBigInt]);
 
@@ -109,6 +110,7 @@ export default function StakingForm({
     mutationFn: async () => {
       if (!staking.depositToken?.address)
         throw new Error("Deposit token address is missing");
+      if (!amountBigInt) throw new Error("Amount is not defined");
       if (!client) throw new Error("Client not found");
       const hash = await approveToken.mutateAsync({
         chainId: staking.chainId,
@@ -138,11 +140,14 @@ export default function StakingForm({
   const stakeAndRefetch = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error("Client not found");
+      if (!amountBigInt) throw new Error("Amount is not defined");
       const hash = await stake.mutateAsync({
         chainId: staking.chainId,
         contract: getAddress(staking.contractAddress),
         amount: amountBigInt,
-        nftIds: nftIds.map((id) => BigInt(id)),
+        nftIds: nftIds
+          .map((id) => strToBigInt(id))
+          .filter((x) => x !== undefined),
       });
       await waitForTransactionReceipt(client, { hash });
       setAmount("");

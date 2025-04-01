@@ -28,7 +28,8 @@ export default function StakingSimulation({
     chainId: staking.chainId,
     address: staking.contractAddress,
     opts: {
-      tokenStaked: strToBigInt("1", staking.depositToken?.decimals),
+      tokenStaked:
+        BigInt(1) * BigInt(10) ** BigInt(staking.depositToken?.decimals ?? 18),
       nftStaked: 0,
     },
   });
@@ -36,7 +37,8 @@ export default function StakingSimulation({
     chainId: staking.chainId,
     address: staking.contractAddress,
     opts: {
-      tokenStaked: strToBigInt(tokenAmount, staking.depositToken?.decimals),
+      tokenStaked:
+        strToBigInt(tokenAmount, staking.depositToken?.decimals) ?? BigInt(0),
       nftStaked: nftQuantity,
     },
   });
