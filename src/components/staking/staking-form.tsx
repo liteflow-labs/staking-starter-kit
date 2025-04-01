@@ -76,7 +76,7 @@ export default function StakingForm({
 
   const hasError = useMemo(() => {
     if (!amountBigInt) return true;
-    if (balance?.data !== undefined && amountBigInt > balance.data) return true;
+    if (balance.data !== undefined && amountBigInt > balance.data) return true;
     return false;
   }, [amountBigInt, balance]);
 
@@ -84,17 +84,17 @@ export default function StakingForm({
     // only display error if amount was set by user
     if (amount === "") return;
     if (!amountBigInt) return "Enter valid amount";
-    if (balance?.data !== undefined && amountBigInt > balance.data)
+    if (balance.data !== undefined && amountBigInt > balance.data)
       return "Not enough balance";
   }, [amount, amountBigInt, balance]);
 
   const requireTokenApproval = useMemo(() => {
-    if (allowance?.data === undefined) return true;
+    if (allowance.data === undefined) return true;
     return allowance.data < amountBigInt;
   }, [allowance, amountBigInt]);
 
   const requireCollectionApproval = useMemo(() => {
-    if (isApprovedForAll?.data === undefined) return true;
+    if (isApprovedForAll.data === undefined) return true;
     if (nftIds.length === 0) return false;
     return !isApprovedForAll.data;
   }, [isApprovedForAll, nftIds]);
@@ -127,7 +127,7 @@ export default function StakingForm({
       if (!client) throw new Error("Client not found");
       const hash = await approveCollection.mutateAsync({
         chainId: staking.chainId,
-        collection: getAddress(staking.depositCollection?.address),
+        collection: getAddress(staking.depositCollection.address),
         contract: getAddress(staking.contractAddress),
       });
       await waitForTransactionReceipt(client, { hash });
@@ -169,7 +169,7 @@ export default function StakingForm({
           <span>
             Available:{" "}
             <NumberFormatter
-              value={balance?.data}
+              value={balance.data}
               decimals={staking.depositToken?.decimals}
             />
           </span>
@@ -181,7 +181,7 @@ export default function StakingForm({
             type="number"
             min="0"
             max={
-              balance?.data
+              balance.data
                 ? formatUnits(
                     balance.data,
                     staking.depositToken?.decimals || 18
@@ -198,12 +198,11 @@ export default function StakingForm({
             variant="outline"
             size="sm"
             className="absolute right-[1px] top-1/2 -translate-y-1/2 scale-90"
-            disabled={!balance?.data}
+            disabled={!balance.data}
             onClick={() =>
-              balance?.data &&
-              staking &&
+              balance.data &&
               setAmount(
-                formatUnits(balance?.data, staking.depositToken?.decimals || 18)
+                formatUnits(balance.data, staking.depositToken?.decimals || 18)
               )
             }
           >

@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Address, getAddress } from "viem";
+import { getAddress } from "viem";
 import { useSwitchChain, useWriteContract } from "wagmi";
 
 const ABI = [
@@ -21,7 +21,7 @@ export default function useClaim() {
       contractAddress,
     }: {
       chainId: number;
-      contractAddress: Address | string;
+      contractAddress: string;
     }) => {
       await chain.switchChainAsync({ chainId });
       return await claimTx.writeContractAsync({

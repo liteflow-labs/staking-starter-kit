@@ -79,10 +79,10 @@ export default function NftDrawer({
               </>
             ) : nfts.error ? (
               <p className="text-destructive">{nfts.error.message}</p>
-            ) : nfts.data!.data.length === 0 ? (
+            ) : !nfts.data || nfts.data.data.length === 0 ? (
               <p className="text-muted-foreground">No NFTs found</p>
             ) : (
-              nfts.data!.data.map((nft) => (
+              nfts.data.data.map((nft) => (
                 <a
                   onClick={() => toggleNft(nft.tokenId)}
                   key={nft.tokenId}
@@ -117,7 +117,7 @@ export default function NftDrawer({
                 ? "no NFTs"
                 : localNftIds.length === 1
                   ? "1 NFT"
-                  : `${localNftIds.length} NFTs`}
+                  : `${localNftIds.length.toString()} NFTs`}
             </Button>
           </DrawerFooter>
         </div>

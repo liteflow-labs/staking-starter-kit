@@ -73,7 +73,7 @@ export default function WithdrawForm({
         contract: getAddress(staking.contractAddress),
         amount: amountBigInt,
         nftIds:
-          position.data?.nftStaked?.map((nftId) => strToBigInt(nftId)) ?? [],
+          position.data?.nftStaked.map((nftId) => strToBigInt(nftId)) ?? [],
       });
       await waitForTransactionReceipt(client, { hash });
       setAmount("");
