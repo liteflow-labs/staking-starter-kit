@@ -52,10 +52,10 @@ export default function ClaimForm({
       isLoading={claimAndRefetch.isPending}
       disabled={BigInt(position.data.rewards) <= BigInt(0)}
     >
-      {staking.rewardCurrency?.symbol}
+      {staking.rewardToken?.symbol}
       <NumberFormatter
         value={position.data.rewards}
-        decimals={staking.rewardCurrency?.decimals}
+        decimals={staking.rewardToken?.decimals}
       />{" "}
     </Button>
   );

@@ -30,13 +30,11 @@ export default function Toolbar({
             className: "hover:bg-transparent",
           })}
         >
-          <span className="text-primary">
-            {staking.depositCurrency?.symbol}
-          </span>{" "}
+          <span className="text-primary">{staking.depositToken?.symbol}</span>{" "}
           {position.data ? (
             <NumberFormatter
               value={position.data?.tokensStaked}
-              decimals={staking.depositCurrency?.decimals}
+              decimals={staking.depositToken?.decimals}
             />
           ) : (
             "--"
