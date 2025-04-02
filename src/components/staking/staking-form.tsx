@@ -16,7 +16,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusCircleIcon } from "lucide-react";
 import { useMemo } from "react";
-import { erc20Abi, erc721Abi, formatUnits, getAddress } from "viem";
+import { Address, erc20Abi, erc721Abi, formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient, useReadContract } from "wagmi";
 
@@ -42,9 +42,11 @@ export default function StakingForm({
     },
     abi: erc20Abi,
     chainId: staking.chainId,
-    address: getAddress(staking.depositToken?.address || ""),
+    address: staking.depositToken?.address
+      ? getAddress(staking.depositToken.address)
+      : undefined,
     functionName: "balanceOf",
-    args: [getAddress(account.address || "")],
+    args: [account.address ? getAddress(account.address) : ("" as Address)],
   });
 
   const allowance = useReadContract({
@@ -53,10 +55,12 @@ export default function StakingForm({
     },
     abi: erc20Abi,
     chainId: staking.chainId,
-    address: getAddress(staking.depositToken?.address || ""),
+    address: staking.depositToken?.address
+      ? getAddress(staking.depositToken.address)
+      : ("" as Address),
     functionName: "allowance",
     args: [
-      getAddress(account.address || ""),
+      account.address ? getAddress(account.address) : ("" as Address),
       getAddress(staking.contractAddress),
     ],
   });
@@ -67,10 +71,12 @@ export default function StakingForm({
     },
     abi: erc721Abi,
     chainId: staking.chainId,
-    address: getAddress(staking.depositCollection?.address || ""),
+    address: staking.depositCollection?.address
+      ? getAddress(staking.depositCollection.address)
+      : ("" as Address),
     functionName: "isApprovedForAll",
     args: [
-      getAddress(account.address || ""),
+      account.address ? getAddress(account.address) : ("" as Address),
       getAddress(staking.contractAddress),
     ],
   });
@@ -111,6 +117,7 @@ export default function StakingForm({
 
   const approveTokenAndRefetch = useMutation({
     mutationFn: async () => {
+      debugger;
       if (!staking.depositToken?.address)
         throw new Error("Deposit token address is missing");
       if (!amountBigInt) throw new Error("Amount is not defined");
@@ -264,14 +271,14 @@ export default function StakingForm({
         >
           Approve {staking.depositToken?.symbol}
         </Button>
-      ) : requireCollectionApproval ? (
+      ) : requireCollectionApproval && staking.depositCollection ? (
         <Button
           isLoading={approveCollectionAndRefetch.isPending}
           className="w-full"
           onClick={() => approveCollectionAndRefetch.mutate()}
           size="lg"
         >
-          Approve {staking.depositCollection?.name}
+          Approve {staking.depositCollection.name}
         </Button>
       ) : (
         <Button
