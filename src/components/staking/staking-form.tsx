@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useApproveCollection from "@/hooks/useApproveCollection";
 import useApproveToken from "@/hooks/useApproveToken";
+import { nftKey } from "@/hooks/useNfts";
 import useStake from "@/hooks/useStake";
 import { stakingPositionKey } from "@/hooks/useStakingPosition";
 import useSupportMultiAssetStaking from "@/hooks/useSupportMultiAssetStaking";
@@ -169,6 +170,13 @@ export default function StakingForm({
             chainId: staking.chainId,
             address: staking.contractAddress,
             userAddress: account.address,
+          }),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: nftKey({
+            chainId: staking.chainId,
+            collection: staking.depositCollection?.address ?? "",
+            owner: account.address,
           }),
         }),
       ]);

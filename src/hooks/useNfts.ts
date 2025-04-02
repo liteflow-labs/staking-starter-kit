@@ -1,6 +1,12 @@
 import liteflow from "@/lib/liteflow";
 import { useQuery } from "@tanstack/react-query";
 
+export const nftKey = (opts: {
+  chainId: number;
+  collection: string;
+  owner: string | undefined;
+}) => ["nfts", opts];
+
 export default function useNfts({
   chainId,
   collection,
@@ -21,6 +27,6 @@ export default function useNfts({
       return res.data;
     },
     enabled: !!owner,
-    queryKey: ["nfts", { chainId, collection, owner }],
+    queryKey: nftKey({ chainId, collection, owner }),
   });
 }
