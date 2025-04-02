@@ -81,7 +81,7 @@ export default function StakingForm({
     ],
   });
 
-  const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals);
+  const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals ?? 0);
 
   const hasError = useMemo(() => {
     if (!amountBigInt) return true;
@@ -117,7 +117,6 @@ export default function StakingForm({
 
   const approveTokenAndRefetch = useMutation({
     mutationFn: async () => {
-      debugger;
       if (!staking.depositToken?.address)
         throw new Error("Deposit token address is missing");
       if (!amountBigInt) throw new Error("Amount is not defined");
@@ -156,7 +155,7 @@ export default function StakingForm({
         contract: getAddress(staking.contractAddress),
         amount: amountBigInt,
         nftIds: nftIds
-          .map((id) => strToBigInt(id))
+          .map((id) => strToBigInt(id, 0))
           .filter((x) => x !== undefined),
       });
       await waitForTransactionReceipt(client, { hash });

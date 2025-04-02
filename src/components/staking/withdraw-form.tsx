@@ -34,7 +34,7 @@ export default function WithdrawForm({
     account.address
   );
   const modal = useConnectModal();
-  const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals);
+  const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals ?? 0);
 
   const hasError = useMemo(() => {
     if (!amountBigInt) return true;
@@ -74,7 +74,7 @@ export default function WithdrawForm({
         amount: amountBigInt,
         nftIds:
           position.data?.nftStaked
-            .map((nftId) => strToBigInt(nftId))
+            .map((nftId) => strToBigInt(nftId, 0))
             .filter((x) => x !== undefined) ?? [],
       });
       await waitForTransactionReceipt(client, { hash });

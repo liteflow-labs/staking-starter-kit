@@ -38,7 +38,8 @@ export default function StakingSimulation({
     address: staking.contractAddress,
     opts: {
       tokenStaked:
-        strToBigInt(tokenAmount, staking.depositToken?.decimals) ?? BigInt(0),
+        strToBigInt(tokenAmount, staking.depositToken?.decimals ?? 0) ??
+        BigInt(0),
       nftStaked: nftQuantity,
     },
   });
@@ -90,7 +91,7 @@ export default function StakingSimulation({
           <p className="w-full text-center text-sm">
             {staking.nftRewardBoostBps > 0 && (
               <>
-                <NumberFormatter value={staking.nftRewardBoostBps} />%{" "}
+                <NumberFormatter value={staking.nftRewardBoostBps / 100} />%{" "}
                 <span className="text-primary">boost</span>
               </>
             )}{" "}
