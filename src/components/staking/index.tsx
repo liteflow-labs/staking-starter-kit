@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useStaking from "@/hooks/useStaking";
 import { LoaderPinwheelIcon, MinusIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 
 export default function Staking({
   chainId,
@@ -17,10 +18,17 @@ export default function Staking({
   chainId: number;
   address: string;
 }) {
+  const account = useAccount();
   const staking = useStaking(chainId, address);
   const [tab, setTab] = useState<string>("stake");
   const [amount, setAmount] = useState("");
   const [nftIds, setNftIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!account.address) return;
+    setAmount("");
+    setNftIds([]);
+  }, [account.address]);
 
   if (staking.isLoading)
     return (
