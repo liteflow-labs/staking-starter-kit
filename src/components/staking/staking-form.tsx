@@ -161,6 +161,7 @@ export default function StakingForm({
       });
       await waitForTransactionReceipt(client, { hash });
       setAmount("");
+      setNftIds([]);
       await Promise.all([
         balance.refetch(),
         allowance.refetch(),
