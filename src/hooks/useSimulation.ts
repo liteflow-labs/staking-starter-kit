@@ -9,14 +9,15 @@ export default function useSimulation({
   chainId: number;
   address: string;
   opts: {
-    tokenStaked: bigint;
+    tokenStaked: bigint | undefined;
     nftStaked: number;
   };
 }) {
   return useQuery({
+    enabled: !!chainId && !!address && !!opts.tokenStaked,
     queryFn: async () => {
       const res = await liteflow.stakingSimulation.retrieve(chainId, address, {
-        tokenStaked: opts.tokenStaked.toString(),
+        tokenStaked: opts.tokenStaked?.toString(),
         nftStaked: opts.nftStaked,
       });
       if (res.error) throw new Error(res.error.message);
@@ -27,7 +28,7 @@ export default function useSimulation({
       {
         chainId,
         address,
-        tokenStaked: opts.tokenStaked.toString(),
+        tokenStaked: opts.tokenStaked?.toString(),
         nftStaked: opts.nftStaked,
       },
     ],
