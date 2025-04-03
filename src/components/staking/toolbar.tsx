@@ -2,9 +2,10 @@
 
 import { NumberFormatter } from "@/components/number-formatter";
 import ClaimForm from "@/components/staking/claim-form";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import useStakingPosition from "@/hooks/useStakingPosition";
 import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
+import { useAccountModal } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
 export default function Toolbar({
@@ -18,9 +19,18 @@ export default function Toolbar({
     staking.contractAddress,
     account.address
   );
+  const modal = useAccountModal();
 
   return (
     <div className="flex justify-end gap-6 text-sm">
+      <Button
+        variant="outline"
+        onClick={modal.openAccountModal}
+        className="mt-6"
+      >
+        {account.address?.slice(0, 6)}...{account.address?.slice(-4)}
+      </Button>
+      <span className="flex-1" />
       <div className="space-y-1">
         <p>Total Staked</p>
         <div

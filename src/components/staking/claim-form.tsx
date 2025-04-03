@@ -46,7 +46,7 @@ export default function ClaimForm({
   if (!position.data) return null;
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       onClick={() => claimAndRefetch.mutate()}
       isLoading={claimAndRefetch.isPending}
       disabled={BigInt(position.data.rewards) <= BigInt(0)}
