@@ -15,21 +15,21 @@ import useNfts from "@/hooks/useNfts";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { useAccount } from "wagmi";
 
 export default function NftDrawer({
   chainId,
   collection,
-  nftIds,
-  setNftIds,
   children,
 }: PropsWithChildren<{
   chainId: number;
   collection: string;
-  nftIds: string[];
-  setNftIds: (nftIds: string[]) => void;
 }>) {
   const account = useAccount();
+  const form = useFormContext<{ nftIds: string[] }>();
+  const nftIds = form.watch("nftIds");
+
   const nfts = useNfts({
     chainId,
     collection,
@@ -44,7 +44,8 @@ export default function NftDrawer({
   }, [nftIds]);
 
   const toggleNft = useCallback(
-    (tokenId: string) => {
+    (tokenId: string | undefined) => {
+      if (!tokenId) return;
       setLocalNftIds((prev) => {
         if (prev.includes(tokenId)) return prev.filter((id) => id !== tokenId);
         return [...prev, tokenId];
@@ -54,9 +55,13 @@ export default function NftDrawer({
   );
 
   const submit = useCallback(() => {
-    setNftIds(localNftIds.filter((x, i, self) => self.indexOf(x) === i));
+    form.setValue(
+      "nftIds",
+      localNftIds.filter((x, i, self) => self.indexOf(x) === i),
+      { shouldValidate: true }
+    );
     setOpen(false);
-  }, [setNftIds, localNftIds, setOpen]);
+  }, [form, localNftIds, setOpen]);
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -107,11 +112,11 @@ export default function NftDrawer({
           </div>
           <DrawerFooter className="flex flex-row justify-between gap-4">
             <DrawerClose asChild>
-              <Button variant="outline" className="w-full">
+              <Button type="button" variant="outline" className="w-full">
                 Cancel
               </Button>
             </DrawerClose>
-            <Button className="w-full" onClick={submit}>
+            <Button type="button" className="w-full" onClick={submit}>
               Select{" "}
               {localNftIds.length === 0
                 ? "no NFTs"

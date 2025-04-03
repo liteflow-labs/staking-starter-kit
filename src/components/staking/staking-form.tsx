@@ -3,100 +3,127 @@
 import NftDrawer from "@/components/nft-drawer";
 import { NumberFormatter } from "@/components/number-formatter";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import useAllowance from "@/hooks/useAllowance";
 import useApproveCollection from "@/hooks/useApproveCollection";
 import useApproveToken from "@/hooks/useApproveToken";
-import { nftKey } from "@/hooks/useNfts";
+import useTokenBalance from "@/hooks/useBalance";
+import useIsApprovedForAll from "@/hooks/useIsApprovedForAll";
 import useStake from "@/hooks/useStake";
-import { stakingPositionKey } from "@/hooks/useStakingPosition";
 import useSupportMultiAssetStaking from "@/hooks/useSupportMultiAssetStaking";
 import { strToBigInt } from "@/lib/bigint";
-import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  GetStakingsByChainIdByAddressPositionsByUserAddressResponse,
+  GetStakingsByChainIdByAddressResponse,
+} from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusCircleIcon } from "lucide-react";
-import { useMemo } from "react";
-import { Address, erc20Abi, erc721Abi, formatUnits, getAddress } from "viem";
+import { useEffect, useMemo } from "react";
+import { Control, useForm } from "react-hook-form";
+import { formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
-import { useAccount, useClient, useReadContract } from "wagmi";
+import { useAccount, useClient } from "wagmi";
+import { z } from "zod";
 
 export default function StakingForm({
   staking,
-  amount,
-  setAmount,
-  nftIds,
-  setNftIds,
+  position,
+  onChange,
 }: {
   staking: GetStakingsByChainIdByAddressResponse;
-  amount: string;
-  setAmount: (amount: string) => void;
-  nftIds: string[];
-  setNftIds: (nftIds: string[]) => void;
+  position:
+    | GetStakingsByChainIdByAddressPositionsByUserAddressResponse
+    | undefined;
+  onChange: (data: { amount: string; nftIds: string[] }) => void;
 }) {
   const account = useAccount();
   const modal = useConnectModal();
+  const balance = useTokenBalance({
+    chainId: staking.chainId,
+    token: staking.depositToken?.address ?? undefined,
+    address: account.address,
+  });
+
+  const minTokenAllowed =
+    BigInt(staking.minTokenAllowed) - BigInt(position?.tokensStaked ?? 0);
+  const maxTokenAllowed =
+    BigInt(staking.maxTokenAllowed) - BigInt(position?.tokensStaked ?? 0);
+  const minNftAllowed =
+    BigInt(staking.minNftAllowed) - BigInt(position?.nftStaked.length ?? 0);
+  const maxNftAllowed =
+    BigInt(staking.maxNftAllowed) - BigInt(position?.nftStaked.length ?? 0);
+
+  const form = useForm({
+    resolver: zodResolver(
+      z.object({
+        amount: z
+          .string()
+          .transform(
+            (value) =>
+              strToBigInt(value, staking.depositToken?.decimals ?? 0) ??
+              BigInt(0)
+          )
+          .refine((value) => !!value, { message: "Enter valid amount" })
+          .refine((value) => value <= (balance.data ?? 0), {
+            message: `Not enough balance`,
+          })
+          .refine((value) => value >= minTokenAllowed, {
+            message: `Amount too low, minimum ${formatUnits(minTokenAllowed, staking.depositToken?.decimals ?? 0)}`,
+          })
+          .refine((value) => value <= maxTokenAllowed, {
+            message: `Amount too high, maximum ${formatUnits(maxTokenAllowed, staking.depositToken?.decimals ?? 0)}`,
+          }),
+        nftIds: z
+          .array(z.string())
+          .transform((value) =>
+            value.map((v) => strToBigInt(v, 0)).filter((v) => v !== undefined)
+          )
+          .refine((value) => BigInt(value.length) >= minNftAllowed, {
+            message: `Too few NFTs, minimum ${formatUnits(minNftAllowed, 0)}`,
+          })
+          .refine((value) => BigInt(value.length) <= maxNftAllowed, {
+            message: `Too many NFTs, maximum ${formatUnits(maxNftAllowed, 0)}`,
+          }),
+      })
+    ),
+    defaultValues: {
+      amount: "",
+      nftIds: [],
+    },
+  });
+  const amount = form.watch("amount");
+  const nftIds = form.watch("nftIds");
+
   const isMultiAssetStaking = useSupportMultiAssetStaking(staking);
-  const balance = useReadContract({
-    query: {
-      enabled: !!staking.depositToken && !!account.address,
-    },
-    abi: erc20Abi,
+
+  const allowance = useAllowance({
     chainId: staking.chainId,
-    address: staking.depositToken?.address
-      ? getAddress(staking.depositToken.address)
-      : undefined,
-    functionName: "balanceOf",
-    args: [account.address ? getAddress(account.address) : ("" as Address)],
+    token: staking.depositToken?.address ?? undefined,
+    owner: account.address,
+    spender: staking.contractAddress,
   });
 
-  const allowance = useReadContract({
-    query: {
-      enabled: !!staking.depositToken && !!account.address,
-    },
-    abi: erc20Abi,
+  const isApprovedForAll = useIsApprovedForAll({
     chainId: staking.chainId,
-    address: staking.depositToken?.address
-      ? getAddress(staking.depositToken.address)
-      : ("" as Address),
-    functionName: "allowance",
-    args: [
-      account.address ? getAddress(account.address) : ("" as Address),
-      getAddress(staking.contractAddress),
-    ],
+    collection: staking.depositCollection?.address,
+    owner: account.address,
+    operator: staking.contractAddress,
   });
 
-  const isApprovedForAll = useReadContract({
-    query: {
-      enabled: !!staking.depositCollection && !!account.address,
-    },
-    abi: erc721Abi,
-    chainId: staking.chainId,
-    address: staking.depositCollection?.address
-      ? getAddress(staking.depositCollection.address)
-      : ("" as Address),
-    functionName: "isApprovedForAll",
-    args: [
-      account.address ? getAddress(account.address) : ("" as Address),
-      getAddress(staking.contractAddress),
-    ],
-  });
-
-  const amountBigInt = strToBigInt(amount, staking.depositToken?.decimals ?? 0);
-
-  const hasError = useMemo(() => {
-    if (!amountBigInt) return true;
-    if (balance.data !== undefined && amountBigInt > balance.data) return true;
-    return false;
-  }, [amountBigInt, balance]);
-
-  const balanceError = useMemo(() => {
-    // only display error if amount was set by user
-    if (amount === "") return;
-    if (!amountBigInt) return "Enter valid amount";
-    if (balance.data !== undefined && amountBigInt > balance.data)
-      return "Not enough balance";
-  }, [amount, amountBigInt, balance]);
+  const amountBigInt = useMemo(() => {
+    if (!amount) return undefined;
+    return strToBigInt(amount, staking.depositToken?.decimals ?? 0);
+  }, [amount, staking.depositToken?.decimals]);
 
   const requireTokenApproval = useMemo(() => {
     if (allowance.data === undefined) return true;
@@ -147,158 +174,164 @@ export default function StakingForm({
     },
   });
 
-  const stakeAndRefetch = useMutation({
-    mutationFn: async () => {
-      if (!client) throw new Error("Client not found");
-      if (!amountBigInt) throw new Error("Amount is not defined");
-      const hash = await stake.mutateAsync({
-        chainId: staking.chainId,
-        contract: getAddress(staking.contractAddress),
-        amount: amountBigInt,
-        nftIds: nftIds
-          .map((id) => strToBigInt(id, 0))
-          .filter((x) => x !== undefined),
-      });
-      await waitForTransactionReceipt(client, { hash });
-      setAmount("");
-      setNftIds([]);
-      await Promise.all([
-        balance.refetch(),
-        allowance.refetch(),
-        isApprovedForAll.refetch(),
-        queryClient.invalidateQueries({
-          queryKey: stakingPositionKey({
-            chainId: staking.chainId,
-            address: staking.contractAddress,
-            userAddress: account.address,
-          }),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: nftKey({
-            chainId: staking.chainId,
-            collection: staking.depositCollection?.address ?? "",
-            owner: account.address,
-          }),
-        }),
-      ]);
-    },
+  const handleSubmit = form.handleSubmit(async (data) => {
+    if (!client) throw new Error("Client not found");
+    if (!data.amount) throw new Error("Amount is not defined");
+    const hash = await stake.mutateAsync({
+      chainId: staking.chainId,
+      contract: getAddress(staking.contractAddress),
+      amount: data.amount,
+      nftIds: data.nftIds,
+    });
+    await waitForTransactionReceipt(client, { hash });
+    await Promise.all([
+      balance.refetch(),
+      allowance.refetch(),
+      isApprovedForAll.refetch(),
+      queryClient.invalidateQueries(),
+    ]);
+    form.reset();
   });
 
+  useEffect(() => {
+    if (!account.address) return;
+    form.reset();
+  }, [account.address, form]);
+
+  useEffect(() => {
+    onChange({ amount, nftIds });
+  }, [amount, nftIds, onChange]);
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <Label className="flex justify-between" htmlFor="stake">
-          <span>Enter amount</span>
-          <span>
-            Available:{" "}
-            <NumberFormatter
-              value={balance.data}
-              decimals={staking.depositToken?.decimals}
-            />
-          </span>
-        </Label>
-
-        <div className="relative">
-          <Input
-            id="stake"
-            type="number"
-            min="0"
-            max={
-              balance.data
-                ? formatUnits(
-                    balance.data,
-                    staking.depositToken?.decimals || 18
-                  )
-                : undefined
-            }
-            step={0.001}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="pr-16 invalid:text-red-600"
-            placeholder="100"
+    <Form {...form}>
+      <form onSubmit={(e) => void handleSubmit(e)}>
+        <div className="space-y-8">
+          <FormField
+            control={form.control as unknown as Control<{ amount: string }>}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Enter amount</FormLabel>
+                  <span className="text-sm text-muted-foreground">
+                    Available:{" "}
+                    <NumberFormatter
+                      value={balance.data}
+                      decimals={staking.depositToken?.decimals ?? 0}
+                    />
+                  </span>
+                </div>
+                <FormControl>
+                  <div className="relative">
+                    <Input placeholder="100" type="number" {...field} />
+                    <Button
+                      variant="outline"
+                      type="button"
+                      size="sm"
+                      className="absolute right-[1px] top-1/2 -translate-y-1/2 scale-90"
+                      disabled={!balance.data}
+                      onClick={() =>
+                        balance.data &&
+                        form.setValue(
+                          "amount",
+                          formatUnits(
+                            balance.data < maxTokenAllowed
+                              ? balance.data
+                              : maxTokenAllowed,
+                            staking.depositToken?.decimals ?? 0
+                          ),
+                          { shouldValidate: true }
+                        )
+                      }
+                    >
+                      Max
+                    </Button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute right-[1px] top-1/2 -translate-y-1/2 scale-90"
-            disabled={!balance.data}
-            onClick={() =>
-              balance.data &&
-              setAmount(
-                formatUnits(balance.data, staking.depositToken?.decimals || 18)
-              )
-            }
-          >
-            Max
-          </Button>
-        </div>
 
-        {balanceError && (
-          <div className="text-sm text-red-600">{balanceError}</div>
-        )}
-      </div>
+          {staking.depositCollection && (
+            <FormField
+              control={form.control as unknown as Control<{ nftIds: string[] }>}
+              name="nftIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Stake NFTs</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      {staking.depositCollection && (
+                        <NftDrawer
+                          chainId={staking.chainId}
+                          collection={staking.depositCollection.address}
+                        >
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="w-fit"
+                          >
+                            <PlusCircleIcon />
+                            Select NFTs
+                          </Button>
+                        </NftDrawer>
+                      )}
+                      <span className="text-muted-foreground">
+                        {field.value.length} selected
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-      {staking.depositCollection && (
-        <div className="flex flex-col space-y-2 text-left">
-          <Label>Stake NFTs</Label>
-          <div className="flex items-center gap-2">
-            <NftDrawer
-              chainId={staking.chainId}
-              collection={staking.depositCollection.address}
-              nftIds={nftIds}
-              setNftIds={setNftIds}
+          {account.isDisconnected ? (
+            <Button
+              type="button"
+              className="w-full"
+              onClick={modal.openConnectModal}
+              isLoading={modal.connectModalOpen}
+              size="lg"
             >
-              <Button variant="outline" size="sm" className="w-fit">
-                <PlusCircleIcon />
-                Select NFTs
-              </Button>
-            </NftDrawer>
-            <span className="text-muted-foreground">
-              {nftIds.length} selected
-            </span>
-          </div>
+              Connect Wallet
+            </Button>
+          ) : requireTokenApproval ? (
+            <Button
+              type="button"
+              isLoading={approveTokenAndRefetch.isPending}
+              className="w-full"
+              onClick={() => approveTokenAndRefetch.mutate()}
+              size="lg"
+            >
+              Approve {staking.depositToken?.symbol}
+            </Button>
+          ) : requireCollectionApproval && staking.depositCollection ? (
+            <Button
+              type="button"
+              isLoading={approveCollectionAndRefetch.isPending}
+              className="w-full"
+              onClick={() => approveCollectionAndRefetch.mutate()}
+              size="lg"
+            >
+              Approve {staking.depositCollection.name}
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              isLoading={form.formState.isSubmitting}
+              // disabled={!form.formState.isValid}
+              className="w-full"
+              size="lg"
+            >
+              Stake {staking.depositToken?.symbol}
+            </Button>
+          )}
         </div>
-      )}
-
-      {account.isDisconnected ? (
-        <Button
-          className="w-full"
-          onClick={modal.openConnectModal}
-          isLoading={modal.connectModalOpen}
-          size="lg"
-        >
-          Connect Wallet
-        </Button>
-      ) : requireTokenApproval ? (
-        <Button
-          isLoading={approveTokenAndRefetch.isPending}
-          disabled={hasError}
-          className="w-full"
-          onClick={() => approveTokenAndRefetch.mutate()}
-          size="lg"
-        >
-          Approve {staking.depositToken?.symbol}
-        </Button>
-      ) : requireCollectionApproval && staking.depositCollection ? (
-        <Button
-          isLoading={approveCollectionAndRefetch.isPending}
-          className="w-full"
-          onClick={() => approveCollectionAndRefetch.mutate()}
-          size="lg"
-        >
-          Approve {staking.depositCollection.name}
-        </Button>
-      ) : (
-        <Button
-          isLoading={stakeAndRefetch.isPending}
-          disabled={hasError}
-          className="w-full"
-          onClick={() => stakeAndRefetch.mutate()}
-          size="lg"
-        >
-          Stake {staking.depositToken?.symbol}
-        </Button>
-      )}
-    </div>
+      </form>
+    </Form>
   );
 }
