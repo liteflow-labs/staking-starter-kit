@@ -23,7 +23,7 @@ export default function Toolbar({
   const modal = useAccountModal();
 
   return (
-    <div className="flex justify-end gap-6 text-sm">
+    <div className="flex justify-end gap-6 text-center text-sm">
       {account.isConnected && (
         <Button
           type="button"
@@ -43,11 +43,18 @@ export default function Toolbar({
             className: "hover:bg-transparent",
           })}
         >
-          <span className="text-primary">{staking.depositToken?.symbol}</span>{" "}
           <NumberFormatter
             value={position?.tokensStaked ?? 0}
             decimals={staking.depositToken?.decimals}
           />
+          <span className="text-primary">{staking.depositToken?.symbol}</span>{" "}
+          {position?.nftStaked && position.nftStaked.length > 0 && (
+            <>
+              <span className="text-muted-foreground">+</span>
+              <NumberFormatter value={position.nftStaked.length} />
+              <span className="text-primary">NFT</span>
+            </>
+          )}
         </div>
       </div>
       <div className="space-y-1">

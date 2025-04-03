@@ -266,6 +266,7 @@ export default function StakingForm({
                         <NftDrawer
                           chainId={staking.chainId}
                           collection={staking.depositCollection.address}
+                          maxNftQuantity={maxNftAllowed}
                         >
                           <Button
                             type="button"

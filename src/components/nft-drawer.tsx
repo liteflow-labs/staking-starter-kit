@@ -16,15 +16,18 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import { maxUint256 } from "viem";
 import { useAccount } from "wagmi";
 
 export default function NftDrawer({
   chainId,
   collection,
+  maxNftQuantity,
   children,
 }: PropsWithChildren<{
   chainId: number;
   collection: string;
+  maxNftQuantity: bigint;
 }>) {
   const account = useAccount();
   const form = useFormContext<{ nftIds: string[] }>();
@@ -46,12 +49,17 @@ export default function NftDrawer({
   const toggleNft = useCallback(
     (tokenId: string | undefined) => {
       if (!tokenId) return;
+      if (
+        !localNftIds.includes(tokenId) &&
+        BigInt(localNftIds.length) >= maxNftQuantity
+      )
+        return;
       setLocalNftIds((prev) => {
         if (prev.includes(tokenId)) return prev.filter((id) => id !== tokenId);
         return [...prev, tokenId];
       });
     },
-    [setLocalNftIds]
+    [setLocalNftIds, localNftIds, maxNftQuantity]
   );
 
   const submit = useCallback(() => {
@@ -69,7 +77,10 @@ export default function NftDrawer({
       <DrawerContent>
         <div className="mx-auto w-full max-w-4xl space-y-4">
           <DrawerHeader>
-            <DrawerTitle>Select NFTs to stake</DrawerTitle>
+            <DrawerTitle>
+              Select NFTs to stake ({localNftIds.length}/
+              {maxNftQuantity === maxUint256 ? <>&infin;</> : maxNftQuantity})
+            </DrawerTitle>
             <DrawerDescription>
               Increase your rewards by staking NFTs.
             </DrawerDescription>
@@ -92,9 +103,12 @@ export default function NftDrawer({
                   onClick={() => toggleNft(nft.tokenId)}
                   key={nft.tokenId}
                   className={cn(
-                    "size-24 cursor-pointer overflow-hidden rounded-md border bg-gray-100",
-                    localNftIds.includes(nft.tokenId) &&
-                      "ring-4 ring-primary/50 ring-offset-1"
+                    "size-24 overflow-hidden rounded-md border bg-gray-100",
+                    localNftIds.includes(nft.tokenId)
+                      ? "cursor-pointer ring-4 ring-primary/50 ring-offset-1"
+                      : localNftIds.length >= maxNftQuantity
+                        ? "cursor-default opacity-50"
+                        : "cursor-pointer"
                   )}
                 >
                   {nft.image && (
