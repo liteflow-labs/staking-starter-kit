@@ -9,7 +9,7 @@ export default function Home() {
   if (!address) throw new Error("Missing staking contract address");
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+    <div className="mx-auto flex w-full max-w-4xl flex-col items-center">
       <Staking chainId={chainId} address={address} />
     </div>
   );

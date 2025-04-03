@@ -3,26 +3,23 @@
 import { NumberFormatter } from "@/components/number-formatter";
 import { Button } from "@/components/ui/button";
 import useClaim from "@/hooks/useClaim";
-import useStakingPosition, {
-  stakingPositionKey,
-} from "@/hooks/useStakingPosition";
-import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
+import {
+  GetStakingsByChainIdByAddressPositionsByUserAddressResponse,
+  GetStakingsByChainIdByAddressResponse,
+} from "@liteflow/sdk/dist/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { waitForTransactionReceipt } from "viem/actions";
-import { useAccount, useClient, useSwitchChain } from "wagmi";
+import { useClient, useSwitchChain } from "wagmi";
 
 export default function ClaimForm({
   staking,
+  position,
 }: {
   staking: GetStakingsByChainIdByAddressResponse;
+  position:
+    | GetStakingsByChainIdByAddressPositionsByUserAddressResponse
+    | undefined;
 }) {
-  const account = useAccount();
-  const position = useStakingPosition(
-    staking.chainId,
-    staking.contractAddress,
-    account.address
-  );
-
   const queryClient = useQueryClient();
   const client = useClient({ chainId: staking.chainId });
   const chain = useSwitchChain();
@@ -33,27 +30,20 @@ export default function ClaimForm({
       await chain.switchChainAsync({ chainId: staking.chainId });
       const hash = await claim.mutateAsync(staking);
       await waitForTransactionReceipt(client, { hash });
-      await queryClient.invalidateQueries({
-        queryKey: stakingPositionKey({
-          chainId: staking.chainId,
-          address: staking.contractAddress,
-          userAddress: account.address,
-        }),
-      });
+      await queryClient.invalidateQueries();
     },
   });
 
-  if (!position.data) return null;
   return (
     <Button
       variant="outline"
       onClick={() => claimAndRefetch.mutate()}
       isLoading={claimAndRefetch.isPending}
-      disabled={BigInt(position.data.rewards) <= BigInt(0)}
+      disabled={BigInt(position?.rewards ?? 0) <= BigInt(0)}
     >
       {staking.rewardToken?.symbol}
       <NumberFormatter
-        value={position.data.rewards}
+        value={position?.rewards ?? 0}
         decimals={staking.rewardToken?.decimals}
       />{" "}
     </Button>
