@@ -10,11 +10,15 @@ import {
 } from "@/components/ui/card";
 import useSimulation from "@/hooks/useSimulation";
 import { strToBigInt } from "@/lib/bigint";
-import { GetStakingsByChainIdByAddressResponse } from "@liteflow/sdk/dist/client";
+import {
+  GetStakingsByChainIdByAddressPositionsByUserAddressResponse,
+  GetStakingsByChainIdByAddressResponse,
+} from "@liteflow/sdk/dist/client";
 import { Loader2Icon } from "lucide-react";
 
 export default function StakingSimulation({
   staking,
+  position,
   tokenAmount,
   nftQuantity,
   positive,
@@ -22,6 +26,9 @@ export default function StakingSimulation({
   tokenAmount: string;
   nftQuantity: number;
   staking: GetStakingsByChainIdByAddressResponse;
+  position:
+    | GetStakingsByChainIdByAddressPositionsByUserAddressResponse
+    | undefined;
   positive: boolean;
 }) {
   const defaultReward = useSimulation({
@@ -31,6 +38,14 @@ export default function StakingSimulation({
       tokenStaked:
         BigInt(1) * BigInt(10) ** BigInt(staking.depositToken?.decimals ?? 18),
       nftStaked: 0,
+    },
+  });
+  const currentReward = useSimulation({
+    chainId: staking.chainId,
+    address: staking.contractAddress,
+    opts: {
+      tokenStaked: BigInt(position?.tokensStaked ?? 0),
+      nftStaked: position?.nftStaked.length ?? 0,
     },
   });
   const reward = useSimulation({
@@ -47,8 +62,24 @@ export default function StakingSimulation({
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          Staking Power Rate
+        <CardTitle className="flex items-center justify-between">
+          <span>Staking Power Rate</span>
+          <span className="text-sm text-muted-foreground">
+            {currentReward.isLoading ? (
+              <Loader2Icon className="inline size-4 animate-spin" />
+            ) : (
+              <>
+                <NumberFormatter
+                  value={BigInt(currentReward.data?.amount ?? 0)}
+                  decimals={staking.rewardToken?.decimals}
+                />{" "}
+                <span className="text-primary">
+                  {staking.rewardToken?.symbol}
+                </span>
+              </>
+            )}{" "}
+            / day
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 items-center justify-center">

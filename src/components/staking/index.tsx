@@ -84,6 +84,7 @@ export default function Staking({
 
         <StakingSimulation
           staking={staking.data}
+          position={position.data}
           tokenAmount={debouncedSimulation?.amount ?? ""}
           nftQuantity={debouncedSimulation?.nftIds.length ?? 0}
           positive={tab === "stake"}

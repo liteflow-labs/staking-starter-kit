@@ -1,4 +1,4 @@
-import { formatUnits as baseFormatUnit } from "viem";
+import { formatUnits as baseFormatUnit, maxUint256 } from "viem";
 
 const formatter = new Intl.NumberFormat("en", {
   notation: "compact",
@@ -17,7 +17,11 @@ export function NumberFormatter({
   if (value === undefined) return "--";
   return (
     <span title={value.toString()} className="font-mono">
-      {formatter.format(parseFloat(baseFormatUnit(BigInt(value), decimals)))}
+      {BigInt(value) === maxUint256 ? (
+        <>&infin;</>
+      ) : (
+        formatter.format(parseFloat(baseFormatUnit(BigInt(value), decimals)))
+      )}
     </span>
   );
 }
