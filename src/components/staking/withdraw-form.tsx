@@ -118,7 +118,14 @@ export default function WithdrawForm({
                 </div>
                 <FormControl>
                   <div className="relative">
-                    <Input placeholder="100" type="number" {...field} />
+                    <Input
+                      placeholder={`eg: ${formatUnits(
+                        BigInt(position?.tokensStaked || "100"),
+                        staking.depositToken?.decimals ?? 0
+                      )}`}
+                      type="number"
+                      {...field}
+                    />
                     <Button
                       type="button"
                       variant="outline"

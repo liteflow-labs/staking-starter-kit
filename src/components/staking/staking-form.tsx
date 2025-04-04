@@ -223,7 +223,14 @@ export default function StakingForm({
                 </div>
                 <FormControl>
                   <div className="relative">
-                    <Input placeholder="100" type="number" {...field} />
+                    <Input
+                      placeholder={`eg: ${formatUnits(
+                        maxTokenAllowed,
+                        staking.depositToken?.decimals ?? 0
+                      )}`}
+                      type="number"
+                      {...field}
+                    />
                     <Button
                       variant="outline"
                       type="button"

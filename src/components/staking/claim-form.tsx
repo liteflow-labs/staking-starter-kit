@@ -41,11 +41,11 @@ export default function ClaimForm({
       isLoading={claimAndRefetch.isPending}
       disabled={BigInt(position?.rewards ?? 0) <= BigInt(0)}
     >
-      {staking.rewardToken?.symbol}
       <NumberFormatter
         value={position?.rewards ?? 0}
         decimals={staking.rewardToken?.decimals}
       />{" "}
+      {staking.rewardToken?.symbol}
     </Button>
   );
 }
