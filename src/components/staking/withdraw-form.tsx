@@ -41,6 +41,7 @@ export default function WithdrawForm({
 }) {
   const account = useAccount();
   const form = useForm({
+    mode: "all",
     resolver: zodResolver(
       z.object({
         amount: z

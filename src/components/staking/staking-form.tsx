@@ -64,6 +64,7 @@ export default function StakingForm({
     BigInt(staking.maxNftAllowed) - BigInt(position?.nftStaked.length ?? 0);
 
   const form = useForm({
+    mode: "all",
     resolver: zodResolver(
       z.object({
         amount: z
