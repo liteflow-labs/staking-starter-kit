@@ -20,6 +20,9 @@ export default function useIsApprovedForAll({
     chainId,
     address: collection ? getAddress(collection) : undefined,
     functionName: "isApprovedForAll",
-    args: [owner ? getAddress(owner) : ("" as `0x${string}`), getAddress(operator)],
+    args: [
+      owner ? getAddress(owner) : ("" as `0x${string}`),
+      getAddress(operator),
+    ],
   });
 }

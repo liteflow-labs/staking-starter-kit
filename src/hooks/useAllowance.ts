@@ -20,6 +20,9 @@ export default function useAllowance({
     chainId,
     address: token ? getAddress(token) : undefined,
     functionName: "allowance",
-    args: [owner ? getAddress(owner) : ("" as `0x${string}`), getAddress(spender)],
+    args: [
+      owner ? getAddress(owner) : ("" as `0x${string}`),
+      getAddress(spender),
+    ],
   });
 }
