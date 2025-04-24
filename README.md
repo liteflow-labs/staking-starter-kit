@@ -89,6 +89,14 @@ The project is designed to be deployed to Vercel. You can deploy the project by 
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/liteflow-labs/staking-starter-kit)
 
+## Build and publish Docker image
+
+Make sure to have the envs in the file `.env.production`.
+
+```bash
+docker build -t IMAGE_TAG --platform linux/amd64 --push .
+```
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any changes.
