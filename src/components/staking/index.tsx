@@ -3,12 +3,15 @@
 import StakingSimulation from "@/components/staking/simulation";
 import StakingForm from "@/components/staking/staking-form";
 import Toolbar from "@/components/staking/toolbar";
-import UnstakingForm from "@/components/staking/unstaking-form";
+import WithdrawForm from "@/components/staking/withdraw-form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useStaking from "@/hooks/useStaking";
+import useStakingPosition from "@/hooks/useStakingPosition";
+import { useDebounce } from "@uidotdev/usehooks";
 import { LoaderPinwheelIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
+import { useAccount } from "wagmi";
 
 export default function Staking({
   chainId,
@@ -17,52 +20,62 @@ export default function Staking({
   chainId: number;
   address: string;
 }) {
+  const account = useAccount();
   const staking = useStaking(chainId, address);
-  const [tab, setTab] = useState<string>("stake");
-  const [amount, setAmount] = useState("");
+  const position = useStakingPosition(chainId, address, account.address);
+  const [tab, setTab] = useState<"stake" | "withdraw">("stake");
+  const [simulation, setSimulation] = useState<{
+    amount: string;
+    nftIds: string[];
+  }>();
+  const debouncedSimulation = useDebounce(simulation, 500);
 
-  if (staking.isLoading)
+  if (staking.isLoading || position.isLoading)
     return (
       <LoaderPinwheelIcon className="size-20 animate-spin text-muted-foreground" />
     );
-  if (staking.error)
-    return <p className="text-destructive">Error: {staking.error.message}</p>;
+  if (staking.error || position.error)
+    return (
+      <p className="text-destructive">
+        Error: {staking.error?.message || position.error?.message}
+      </p>
+    );
   if (!staking.data) return <p>No data</p>;
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
-      <Toolbar staking={staking.data} />
+    <div className="mx-auto w-full max-w-4xl space-y-4">
+      <Toolbar staking={staking.data} position={position.data} />
 
       <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <Tabs
             defaultValue="stake"
             value={tab}
-            onValueChange={(value) => setTab(value)}
+            onValueChange={(value) => setTab(value as "stake" | "withdraw")}
           >
             <CardHeader>
               <TabsList className="grid grid-cols-2">
                 <TabsTrigger value="stake">
                   <PlusIcon className="mr-2 size-4" /> Stake
                 </TabsTrigger>
-                <TabsTrigger value="unstake">
-                  <MinusIcon className="mr-2 size-4" /> Unstake
+                <TabsTrigger value="withdraw">
+                  <MinusIcon className="mr-2 size-4" /> Withdraw
                 </TabsTrigger>
               </TabsList>
             </CardHeader>
             <CardContent>
-              <TabsContent value="stake" className="space-y-6">
+              <TabsContent value="stake">
                 <StakingForm
                   staking={staking.data}
-                  amount={amount}
-                  setAmount={setAmount}
+                  position={position.data}
+                  onChange={setSimulation}
                 />
               </TabsContent>
-              <TabsContent value="unstake" className="space-y-6">
-                <UnstakingForm
+              <TabsContent value="withdraw">
+                <WithdrawForm
                   staking={staking.data}
-                  amount={amount}
-                  setAmount={setAmount}
+                  position={position.data}
+                  onChange={setSimulation}
                 />
               </TabsContent>
             </CardContent>
@@ -71,7 +84,9 @@ export default function Staking({
 
         <StakingSimulation
           staking={staking.data}
-          amount={amount}
+          position={position.data}
+          tokenAmount={debouncedSimulation?.amount ?? ""}
+          nftQuantity={debouncedSimulation?.nftIds.length ?? 0}
           positive={tab === "stake"}
         />
       </div>

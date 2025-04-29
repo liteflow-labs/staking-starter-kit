@@ -8,7 +8,7 @@ The Staking Starter Kit is a boilerplate project designed to help businesses lau
 
 - **Staking:** Users can stake tokens token anytime to earn rewards.
 - **Claim rewards:** Users can claim rewards anytime.
-- **Unstake:** Users can unstake tokens anytime.
+- **Withdraw:** Users can withdraw tokens anytime.
 
 ## Setup
 
