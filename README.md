@@ -56,11 +56,8 @@ NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=
 # Create your Liteflow API key on https://dashboard.liteflow.com/developers
 NEXT_PUBLIC_LITEFLOW_API_KEY=
 
-# Chain ID of the staking contract created on https://dashboard.liteflow.com/engagements/stakings/create
+# Chain ID of the staking contracts created on https://dashboard.liteflow.com/engagements/stakings/create
 NEXT_PUBLIC_STAKING_CHAIN=
-
-# Address of the staking contract created on https://dashboard.liteflow.com/engagements/stakings/create
-NEXT_PUBLIC_STAKING_CONTRACT=
 
 # Optional provider URL
 NEXT_PUBLIC_ETHEREUM_MAINNET_PROVIDER_URL=
