@@ -32,7 +32,9 @@ export default function Staking({
 
   if (staking.isLoading || position.isLoading)
     return (
-      <LoaderPinwheelIcon className="size-20 animate-spin text-muted-foreground" />
+      <div className="flex size-full min-h-[500px] items-center justify-center">
+        <LoaderPinwheelIcon className="size-20 animate-spin text-muted-foreground" />
+      </div>
     );
   if (staking.error || position.error)
     return (
