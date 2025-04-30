@@ -30,7 +30,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusCircleIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { Control, useForm } from "react-hook-form";
-import { formatUnits, getAddress } from "viem";
+import { formatUnits, getAddress, maxUint256 } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient } from "wagmi";
 import { z } from "zod";
@@ -225,10 +225,14 @@ export default function StakingForm({
                 <FormControl>
                   <div className="relative">
                     <Input
-                      placeholder={`eg: ${formatUnits(
-                        maxTokenAllowed,
-                        staking.depositToken?.decimals ?? 0
-                      )}`}
+                      placeholder={`eg: ${
+                        maxTokenAllowed === maxUint256
+                          ? "100"
+                          : formatUnits(
+                              maxTokenAllowed,
+                              staking.depositToken?.decimals ?? 0
+                            )
+                      }`}
                       type="number"
                       {...field}
                     />
@@ -276,14 +280,9 @@ export default function StakingForm({
                           collection={staking.depositCollection.address}
                           maxNftQuantity={maxNftAllowed}
                         >
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="w-fit"
-                          >
-                            <PlusCircleIcon />
-                            Select NFTs
+                          <Button type="button" variant="outline" size="sm">
+                            <PlusCircleIcon className="mr-2 inline" />
+                            <span>Select NFTs</span>
                           </Button>
                         </NftDrawer>
                       )}

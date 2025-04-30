@@ -73,7 +73,7 @@ export default function StakingSimulation({
                   value={BigInt(currentReward.data?.amount ?? 0)}
                   decimals={staking.rewardToken?.decimals}
                 />{" "}
-                <span className="text-primary">
+                <span className="text-primary dark:text-primary-foreground">
                   {staking.rewardToken?.symbol}
                 </span>
               </>
@@ -104,7 +104,9 @@ export default function StakingSimulation({
       <CardFooter className="flex flex-col gap-2">
         <p className="w-full text-center text-sm">
           <NumberFormatter value={1} />{" "}
-          <span className="text-primary">{staking.depositToken?.symbol}</span>{" "}
+          <span className="text-primary dark:text-primary-foreground">
+            {staking.depositToken?.symbol}
+          </span>{" "}
           staked ={" "}
           {defaultReward.isLoading ? (
             <Loader2Icon className="inline size-4 animate-spin text-muted-foreground" />
@@ -114,7 +116,9 @@ export default function StakingSimulation({
               decimals={staking.rewardToken?.decimals}
             />
           )}{" "}
-          <span className="text-primary">{staking.rewardToken?.symbol}</span>{" "}
+          <span className="text-primary dark:text-primary-foreground">
+            {staking.rewardToken?.symbol}
+          </span>{" "}
           per day
         </p>
         {(staking.nftRewardBoostBps > 0 ||
@@ -123,7 +127,9 @@ export default function StakingSimulation({
             {staking.nftRewardBoostBps > 0 && (
               <>
                 <NumberFormatter value={staking.nftRewardBoostBps / 100} />%{" "}
-                <span className="text-primary">boost</span>
+                <span className="text-primary dark:text-primary-foreground">
+                  boost
+                </span>
               </>
             )}{" "}
             {staking.nftRewardBoostBps > 0 &&
@@ -135,7 +141,7 @@ export default function StakingSimulation({
                   value={staking.nftReward}
                   decimals={staking.rewardToken?.decimals}
                 />{" "}
-                <span className="text-primary">
+                <span className="text-primary dark:text-primary-foreground">
                   {staking.rewardToken?.symbol}
                 </span>{" "}
                 per day
