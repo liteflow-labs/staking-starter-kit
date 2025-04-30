@@ -47,12 +47,16 @@ export default function Toolbar({
             value={position?.tokensStaked ?? 0}
             decimals={staking.depositToken?.decimals}
           />
-          <span className="text-primary">{staking.depositToken?.symbol}</span>{" "}
+          <span className="text-primary dark:text-primary-foreground">
+            {staking.depositToken?.symbol}
+          </span>{" "}
           {staking.depositCollection && (
             <>
               <span className="text-muted-foreground">+</span>
               <NumberFormatter value={position?.nftStaked.length ?? 0} />
-              <span className="text-primary">NFT</span>
+              <span className="text-primary dark:text-primary-foreground">
+                NFT
+              </span>
             </>
           )}
         </div>
