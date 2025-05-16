@@ -83,25 +83,10 @@ export default function WithdrawForm({
   const unlockDate = useMemo(() => {
     if (!position) return new Date();
     return new Date(
-      (position.updatedAt as Date).getTime() +
+      position.updatedAt.getTime() +
         Number(staking.flexibleClaim ? 0 : staking.lockPeriod) * 1000
     );
   }, [position, staking]);
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    if (!client) throw new Error("Client not found");
-    if (!data.amount) throw new Error("no valid amount");
-    await chain.switchChainAsync({ chainId: staking.chainId });
-    const hash = await withdraw.mutateAsync({
-      chainId: staking.chainId,
-      contract: getAddress(staking.contractAddress),
-      amount: data.amount,
-      nftIds: data.nftIds,
-    });
-    await waitForTransactionReceipt(client, { hash });
-    await queryClient.invalidateQueries();
-    form.reset();
-  });
 
   const isLocked = useMemo(() => {
     if (unlockDate < new Date()) return false;
@@ -135,6 +120,21 @@ export default function WithdrawForm({
     }
     return null;
   }, [unlockDate, staking]);
+
+  const handleSubmit = form.handleSubmit(async (data) => {
+    if (!client) throw new Error("Client not found");
+    if (!data.amount) throw new Error("no valid amount");
+    await chain.switchChainAsync({ chainId: staking.chainId });
+    const hash = await withdraw.mutateAsync({
+      chainId: staking.chainId,
+      contract: getAddress(staking.contractAddress),
+      amount: data.amount,
+      nftIds: data.nftIds,
+    });
+    await waitForTransactionReceipt(client, { hash });
+    await queryClient.invalidateQueries();
+    form.reset();
+  });
 
   useEffect(() => {
     onChange({ amount, nftIds });
