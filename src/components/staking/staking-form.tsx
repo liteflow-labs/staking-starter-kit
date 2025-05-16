@@ -30,7 +30,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusCircleIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { Control, useForm } from "react-hook-form";
-import { formatUnits, getAddress, maxUint256 } from "viem";
+import { formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount, useClient } from "wagmi";
 import { z } from "zod";
@@ -224,18 +224,7 @@ export default function StakingForm({
                 </div>
                 <FormControl>
                   <div className="relative">
-                    <Input
-                      placeholder={`eg: ${
-                        maxTokenAllowed === maxUint256
-                          ? "100"
-                          : formatUnits(
-                              maxTokenAllowed,
-                              staking.depositToken?.decimals ?? 0
-                            )
-                      }`}
-                      type="number"
-                      {...field}
-                    />
+                    <Input placeholder="eg: 100" type="number" {...field} />
                     <Button
                       variant="outline"
                       type="button"
