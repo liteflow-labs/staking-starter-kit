@@ -1,6 +1,7 @@
 "use client";
 
 import { NumberFormatter } from "@/components/number-formatter";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,7 +22,8 @@ import {
 } from "@liteflow/sdk/dist/client";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { LockIcon } from "lucide-react";
+import { useEffect, useMemo } from "react";
 import { Control, useForm } from "react-hook-form";
 import { formatUnits, getAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
@@ -78,6 +80,13 @@ export default function WithdrawForm({
   const withdraw = useWithdraw(multiAssetStaking.data);
   const amount = form.watch("amount");
   const nftIds = form.watch("nftIds");
+  const unlockDate = useMemo(() => {
+    if (!position) return new Date();
+    return new Date(
+      (position.updatedAt as Date).getTime() +
+        Number(staking.flexibleClaim ? 0 : staking.lockPeriod) * 1000
+    );
+  }, [position, staking]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
     if (!client) throw new Error("Client not found");
@@ -94,6 +103,39 @@ export default function WithdrawForm({
     form.reset();
   });
 
+  const isLocked = useMemo(() => {
+    if (unlockDate < new Date()) return false;
+    if (staking.flexibleWithdraw) return false;
+    return true;
+  }, [unlockDate, staking.flexibleWithdraw]);
+  const alert = useMemo(() => {
+    if (unlockDate < new Date()) return null;
+    if (!staking.flexibleWithdraw)
+      return (
+        <Alert>
+          <LockIcon className="size-3" />
+          <AlertTitle>Withdrawal is locked</AlertTitle>
+          <AlertDescription>
+            You can withdraw after {unlockDate.toLocaleString()}.
+          </AlertDescription>
+        </Alert>
+      );
+    if (staking.penaltyFeeBps) {
+      return (
+        <Alert>
+          <LockIcon className="size-3" />
+          <AlertTitle>Withdrawal is locked</AlertTitle>
+          <AlertDescription>
+            Your token staked are still locked until{" "}
+            {unlockDate.toLocaleString()}. You will be charged a penalty of{" "}
+            {staking.penaltyFeeBps / 100}% for withdrawing.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    return null;
+  }, [unlockDate, staking]);
+
   useEffect(() => {
     onChange({ amount, nftIds });
   }, [amount, nftIds, onChange]);
@@ -102,6 +144,7 @@ export default function WithdrawForm({
     <Form {...form}>
       <form onSubmit={(e) => void handleSubmit(e)}>
         <div className="space-y-8">
+          {alert}
           <FormField
             control={form.control as unknown as Control<{ amount: string }>}
             name="amount"
@@ -171,6 +214,7 @@ export default function WithdrawForm({
                 isLoading={form.formState.isSubmitting}
                 className="w-full"
                 size="lg"
+                disabled={isLocked}
               >
                 Withdraw {staking.depositToken?.symbol}
               </Button>
