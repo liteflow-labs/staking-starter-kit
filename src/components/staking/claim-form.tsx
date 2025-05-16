@@ -8,6 +8,8 @@ import {
   GetStakingsByChainIdByAddressResponse,
 } from "@liteflow/sdk/dist/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { LockIcon } from "lucide-react";
+import { useMemo } from "react";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useClient, useSwitchChain } from "wagmi";
 
@@ -24,8 +26,20 @@ export default function ClaimForm({
   const client = useClient({ chainId: staking.chainId });
   const chain = useSwitchChain();
   const claim = useClaim();
+  const unlockDate = useMemo(() => {
+    if (!position) return new Date();
+    return new Date(
+      (position.updatedAt as Date).getTime() +
+        Number(staking.flexibleClaim ? 0 : staking.lockPeriod) * 1000
+    );
+  }, [position, staking]);
+  const isLocked = useMemo(
+    () => (staking.flexibleClaim ? false : unlockDate > new Date()),
+    [unlockDate, staking.flexibleClaim]
+  );
   const claimAndRefetch = useMutation({
     mutationFn: async () => {
+      if (isLocked) throw new Error("Early claim not allowed");
       if (!client) throw new Error("Client not found");
       await chain.switchChainAsync({ chainId: staking.chainId });
       const hash = await claim.mutateAsync(staking);
@@ -39,8 +53,9 @@ export default function ClaimForm({
       variant="outline"
       onClick={() => claimAndRefetch.mutate()}
       isLoading={claimAndRefetch.isPending}
-      disabled={BigInt(position?.rewards ?? 0) <= BigInt(0)}
+      disabled={BigInt(position?.rewards ?? 0) <= BigInt(0) || isLocked}
     >
+      {isLocked && <LockIcon className="size-4" />}
       <NumberFormatter
         value={position?.rewards ?? 0}
         decimals={staking.rewardToken?.decimals}
