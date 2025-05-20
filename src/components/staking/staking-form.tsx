@@ -145,17 +145,16 @@ export default function StakingForm({
     if (tokenCap === maxUint256) return null;
     const percent = (tokenBalance * BigInt(100)) / tokenCap;
 
-    if (percent < BigInt(50)) return null;
-    if (percent < BigInt(90))
+    if (percent >= BigInt(100))
       return (
         <Alert>
-          <AlertTitle>🔥 The staking pool is filling up fast!</AlertTitle>
+          <AlertTitle>❌ This staking pool is full</AlertTitle>
           <AlertDescription>
-            Don’t miss your chance to earn — stake now before it’s too late.
+            You missed this one — check other pools to secure your spot.
           </AlertDescription>
         </Alert>
       );
-    if (percent < BigInt(99))
+    if (percent >= BigInt(90))
       return (
         <Alert>
           <AlertTitle>🚨 Almost full!</AlertTitle>
@@ -165,14 +164,16 @@ export default function StakingForm({
           </AlertDescription>
         </Alert>
       );
-    return (
-      <Alert>
-        <AlertTitle>❌ This staking pool is full</AlertTitle>
-        <AlertDescription>
-          You missed this one — check other pools to secure your spot.
-        </AlertDescription>
-      </Alert>
-    );
+    if (percent >= BigInt(50))
+      return (
+        <Alert>
+          <AlertTitle>🔥 The staking pool is filling up fast!</AlertTitle>
+          <AlertDescription>
+            Don’t miss your chance to earn — stake now before it’s too late.
+          </AlertDescription>
+        </Alert>
+      );
+    return null;
   }, [staking]);
 
   const queryClient = useQueryClient();
