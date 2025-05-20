@@ -29,8 +29,7 @@ export default function ClaimForm({
   const unlockDate = useMemo(() => {
     if (!position) return new Date();
     return new Date(
-      position.updatedAt.getTime() +
-        Number(staking.flexibleClaim ? 0 : Number(staking.lockPeriod)) * 1000
+      position.updatedAt.getTime() + Number(staking.lockPeriod) * 1000
     );
   }, [position, staking]);
   const isLocked = useMemo(
