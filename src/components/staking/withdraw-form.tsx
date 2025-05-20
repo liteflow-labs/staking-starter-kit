@@ -93,6 +93,7 @@ export default function WithdrawForm({
     return true;
   }, [unlockDate, staking.flexibleWithdraw]);
   const alert = useMemo(() => {
+    if (!position) return null;
     if (unlockDate < new Date()) return null;
     if (!staking.flexibleWithdraw)
       return (
@@ -118,7 +119,7 @@ export default function WithdrawForm({
       );
     }
     return null;
-  }, [unlockDate, staking]);
+  }, [position, unlockDate, staking]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
     if (!client) throw new Error("Client not found");
