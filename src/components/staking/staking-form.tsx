@@ -55,10 +55,15 @@ export default function StakingForm({
     address: account.address,
   });
 
+  const poolMaxCapacity =
+    BigInt(staking.tokenCap) - BigInt(staking.tokenBalance);
+
   const minTokenAllowed =
     BigInt(staking.minTokenAllowed) - BigInt(position?.tokensStaked ?? 0);
-  const maxTokenAllowed =
+  const maxUserToken =
     BigInt(staking.maxTokenAllowed) - BigInt(position?.tokensStaked ?? 0);
+  const maxTokenAllowed =
+    maxUserToken < poolMaxCapacity ? maxUserToken : poolMaxCapacity;
   const minNftAllowed =
     BigInt(staking.minNftAllowed) - BigInt(position?.nftStaked.length ?? 0);
   const maxNftAllowed =
