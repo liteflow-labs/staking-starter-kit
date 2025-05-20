@@ -119,7 +119,7 @@ export default function WithdrawForm({
       );
     }
     return null;
-  }, [unlockDate, staking]);
+  }, [position, unlockDate, staking]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
     if (!client) throw new Error("Client not found");
