@@ -93,6 +93,7 @@ export default function WithdrawForm({
     return true;
   }, [unlockDate, staking.flexibleWithdraw]);
   const alert = useMemo(() => {
+    if (!position) return null;
     if (unlockDate < new Date()) return null;
     if (!staking.flexibleWithdraw)
       return (
