@@ -147,9 +147,7 @@ export default function StakingSimulation({
                 per day
               </>
             )}{" "}
-            {staking.nftRewardBoostBps > 0 &&
-              BigInt(staking.nftReward) > BigInt(0) &&
-              "per NFT"}
+            per NFT
           </p>
         )}
       </CardFooter>
